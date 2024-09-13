@@ -23,11 +23,12 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 default = ["native-tls"]
 
-full = ["binance", "bitflyer", "bybit", "coincheck"]
+full = ["binance", "bitbank", "bitflyer", "bybit", "coincheck"]
 binance = ["dep:serde_urlencoded"]
 bitflyer = ["dep:rand"]
 bybit = ["dep:serde_urlencoded", "dep:rand"]
 coincheck = ["dep:serde_urlencoded"]
+bitbank = ["dep:serde_urlencoded"]
 
 native-tls = ["generic-api-client/native-tls"]
 native-tls-vendored = ["generic-api-client/native-tls-vendored"]
@@ -70,6 +71,14 @@ path = "examples/binance/binance_websocket_public.rs"
 [[example]]
 name = "binance_spawn"
 path = "examples/binance/binance_spawn.rs"
+
+[[example]]
+name = "bitbank_http_public"
+path = "examples/bitbank/bitbank_http_public.rs"
+
+[[example]]
+name = "bitbank_websocket_public"
+path = "examples/bitbank/bitbank_websocket_public.rs"
 
 [[example]]
 name = "bitflyer_http_private"
