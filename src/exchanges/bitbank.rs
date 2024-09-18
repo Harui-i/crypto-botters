@@ -219,6 +219,19 @@ impl WebSocketHandler for BitbankWebSocketHandler {
                         };
                     }
 
+                    // close
+                    '1' => {
+                        log::debug!("Engine.io's CLOSE packet: {}", message);
+                    }
+
+                    // ping
+                    '2' => {
+                        let res_pong_se : Vec<WebSocketMessage> = vec![WebSocketMessage::Text("3".to_string())];
+                        log::debug!("got a ping packet: {}", message);
+                        log::debug!("sending pong packet: 3");
+                        return res_pong_se;
+                    }
+
                     // message
                     '4' => {
                         // socket.io packet
@@ -276,7 +289,7 @@ impl WebSocketHandler for BitbankWebSocketHandler {
                         }
                     }
                     _ => {
-                        log::debug!("Invalid message received: {}", message);
+                        log::debug!("Invalid Engine.io's packet received: {}", message);
                     }
                 }
             }
