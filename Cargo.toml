@@ -81,6 +81,10 @@ name = "bitbank_websocket_public"
 path = "examples/bitbank/bitbank_websocket_public.rs"
 
 [[example]]
+name = "bitbank_websocket_orderbook"
+path = "examples/bitbank/bitbank_websocket_orderbook.rs"
+
+[[example]]
 name = "bitflyer_http_private"
 path = "examples/bitflyer/bitflyer_http_private.rs"
 
