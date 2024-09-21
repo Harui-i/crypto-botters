@@ -306,6 +306,10 @@ impl WebSocketHandler for BitbankWebSocketHandler {
 
         vec![]
     }
+
+    fn handle_close(&mut self, reconnect: bool) {
+        log::debug!("Bitbank WebSocket connection closed; reconnect: {}", reconnect);
+    }
 }
 
 impl BitbankHttpUrl {
