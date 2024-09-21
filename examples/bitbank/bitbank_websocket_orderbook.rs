@@ -65,7 +65,7 @@ impl fmt::Display for DepthData {
         write!(f, "asks\n")?;
         write!(f, "mid\n")?;
 
-        write!(f, "bids\n").unwrap();
+        write!(f, "bids\n")?;
         for (price, amount) in self.bids.iter().rev().take(20) {
             write!(f, "{}\t{:.4}\n", price, amount)?;
         }
@@ -269,7 +269,7 @@ async fn main() {
         .await
         .expect("failed to connect websocket");
 
-    for _ in 0..10 {
+    for _ in 0..100 {
         tokio::time::sleep(Duration::from_secs(30)).await;
     }
 
