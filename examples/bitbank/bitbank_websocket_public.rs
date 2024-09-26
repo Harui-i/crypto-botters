@@ -68,10 +68,6 @@ async fn main() {
             closure,
             [BitbankOption::WebSocketChannels(vec![
                 "transactions_btc_jpy".to_owned(),
-                "transactions_eth_jpy".to_owned(),
-                "transactions_xrp_jpy".to_owned(),
-                //"depth_diff_btc_jpy".to_owned(),
-                //"depth_whole_btc_jpy".to_owned(),
             ])],
         )
         .await
