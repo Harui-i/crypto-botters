@@ -16,22 +16,6 @@ async fn main() {
     // change bitbank's url to public one.
     client.update_default_option(BitbankOption::HttpUrl(public));
 
-    // ticker response is like this:
-    /*
-    
-    {
-        "success": 1,
-        "data": {
-            "sell": "1000000.0",
-            "buy": "999000.0",
-            "high": "1000000.0",
-            "low": "990000.0",
-            "last": "1000000.0",
-            "vol": "100.0",
-            "timestamp": 1620000000000
-        }
-     */
-
 
     #[allow(dead_code)]
     #[derive(Deserialize, Debug)]
@@ -62,7 +46,6 @@ async fn main() {
     }
 
     // https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-api.md
-
     // access https://public.bitbank.cc/btc_jpy/ticker
 
     let ticker: Ticker = client

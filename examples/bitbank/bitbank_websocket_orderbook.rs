@@ -234,23 +234,25 @@ async fn main() {
             let depth_data: DepthDiff = serde_json::from_value(sio_message.message.data)
                 .expect("failed to parse (diff) depth data");
 
-            //log::debug!("{:?}", depth_data);
             board.insert_diff(&depth_data);
 
+            log::debug!("{:?}", depth_data);
 
 
         } else if sio_message.room_name.starts_with("depth_whole") {
             log::debug!("whole");
             let depth_data: DepthWhole = serde_json::from_value(sio_message.message.data)
                 .expect("failed to parse (whole) depth data");
+            log::debug!("{:?}", depth_data);
             //log::debug!("{:?}", depth_data);
             board.update_whole(depth_data);
+
         } else {
             log::debug!("unknown room name: {}", sio_message.room_name);
         }
 
         if sio_message.room_name.starts_with("depth") && board.is_complete() {
-            log::debug!("{}", board);
+            //log::debug!("{}", board);
         }
 
     };

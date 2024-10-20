@@ -1,10 +1,13 @@
 //! A module for communicating with the [Bitbank API](https://github.com/bitbankinc/bitbank-api-docs/blob/master/README.md)
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, time::SystemTime};
 
 use crate::traits::*;
 use generic_api_client::{http::*, websocket::*};
+use header::HeaderValue;
+use hmac::{Hmac, Mac};
 use serde::{de::DeserializeOwned, Serialize};
+use sha2::Sha256;
 
 /// The type returned by [Client::request()].
 pub type BitbankRequestResult<T> = Result<T, BitbankRequestError>;
@@ -129,11 +132,56 @@ where
         }
 
         // this gonna be mutable when self.options.http_auth is implemented
-        let request = builder.build().or(Err("failed to build request"))?;
+        let mut request = builder.build().or(Err("failed to build request"))?;
 
         if self.options.http_auth {
-            // TODO
-            assert!(false);
+            // add authentication info to header
+            // cf: https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md
+            // ACCESS-TIME-WINDOW method
+
+            let mut path = request.url().path().to_owned();
+
+            if let Some(query) = request.url().query() {
+                path.push('?');
+                path.push_str(query);
+            }
+
+            let body = request
+                .body()
+                .and_then(|body| body.as_bytes())
+                .map(String::from_utf8_lossy)
+                .unwrap_or_default();
+
+            let access_request_time = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as u64;
+            let access_time_window = 1000;
+            let sign_content = format!(
+                "{}{}{}{}",
+                access_request_time, access_time_window, path, body
+            );
+
+            let secret = self
+                .options
+                .secret
+                .as_deref()
+                .ok_or("API secret not found")?;
+            let mut hmac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();
+
+            hmac.update(sign_content.as_bytes());
+            let signature = hex::encode(hmac.finalize().into_bytes());
+
+            let key =
+                HeaderValue::from_str(self.options.key.as_deref().ok_or("API key not found")?)
+                    .or(Err("invalid character in API key"))?;
+
+            let headers = request.headers_mut();
+            headers.insert("ACCESS-KEY", key);
+            headers.insert("ACCESS-REQUEST-TIME", HeaderValue::from(access_request_time));
+            headers.insert("ACCESS-TIME-WINDOW", HeaderValue::from(access_time_window));
+            headers.insert("ACCESS-SIGNATURE", HeaderValue::from_str(&signature).unwrap());
+
         }
 
         Ok(request)
@@ -226,7 +274,8 @@ impl WebSocketHandler for BitbankWebSocketHandler {
 
                     // ping
                     '2' => {
-                        let res_pong_se : Vec<WebSocketMessage> = vec![WebSocketMessage::Text("3".to_string())];
+                        let res_pong_se: Vec<WebSocketMessage> =
+                            vec![WebSocketMessage::Text("3".to_string())];
                         log::debug!("got a ping packet: {}", message);
                         log::debug!("sending pong packet: 3");
                         return res_pong_se;
@@ -250,12 +299,14 @@ impl WebSocketHandler for BitbankWebSocketHandler {
 
                                         // join process here:
                                         // join rooms
-                                        let join_messages: Vec<WebSocketMessage> = self.options
+                                        let join_messages: Vec<WebSocketMessage> = self
+                                            .options
                                             .websocket_channels
                                             .clone()
                                             .into_iter()
                                             .map(|channel| {
-                                                let msg = format!("42[\"join-room\", \"{}\"]", channel);
+                                                let msg =
+                                                    format!("42[\"join-room\", \"{}\"]", channel);
                                                 log::debug!("sending join message: {}", msg);
                                                 WebSocketMessage::Text(msg)
                                             })
@@ -272,9 +323,7 @@ impl WebSocketHandler for BitbankWebSocketHandler {
                             // EVENT
                             '2' => {
                                 match serde_json::from_str(&message[2..]) {
-                                    Ok(message) => {
-                                        (self.message_handler)(message)
-                                    }
+                                    Ok(message) => (self.message_handler)(message),
                                     Err(_) => {
                                         log::debug!("Invalid JSON message received, processing Socket.io's EVENT packet: {}", message);
                                     }
@@ -308,7 +357,10 @@ impl WebSocketHandler for BitbankWebSocketHandler {
     }
 
     fn handle_close(&mut self, reconnect: bool) {
-        log::debug!("Bitbank WebSocket connection closed; reconnect: {}", reconnect);
+        log::debug!(
+            "Bitbank WebSocket connection closed; reconnect: {}",
+            reconnect
+        );
     }
 }
 
