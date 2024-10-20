@@ -127,7 +127,7 @@ where
             ))?;
 
             builder = builder
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::CONTENT_TYPE, "application/json")
                 .body(encoded);
         }
 
@@ -157,9 +157,22 @@ where
                 .unwrap()
                 .as_millis() as u64;
             let access_time_window = 1000;
+
+            let sign_latter;
+            
+            // GET method
+            if body == "" {
+                sign_latter = path;
+            }
+            // POST method
+            else {
+                sign_latter = format!("{}", body);
+            }
+
+
             let sign_content = format!(
-                "{}{}{}{}",
-                access_request_time, access_time_window, path, body
+                "{}{}{}",
+                access_request_time, access_time_window, sign_latter
             );
 
             let secret = self
@@ -181,7 +194,6 @@ where
             headers.insert("ACCESS-REQUEST-TIME", HeaderValue::from(access_request_time));
             headers.insert("ACCESS-TIME-WINDOW", HeaderValue::from(access_time_window));
             headers.insert("ACCESS-SIGNATURE", HeaderValue::from_str(&signature).unwrap());
-
         }
 
         Ok(request)
@@ -194,26 +206,39 @@ where
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
         if status.is_success() {
-            serde_json::from_slice(&response_body).map_err(|error| {
+            let res = serde_json::from_slice::<R>(&response_body).map_err(|error| {
                 log::debug!("Failed to parse response: {:?}", error);
                 log::debug!(
                     "Response body: {:?}",
                     String::from_utf8_lossy(&response_body)
                 );
                 BitbankHandleError::ParseError
-            })
+            });
+
+            match res {
+                Err(err) => {
+                    Err(err)
+                }
+
+                Ok(res) => {
+                    let res_val = serde_json::from_slice::<serde_json::Value>(&response_body).unwrap();
+                    if res_val["success"].as_i64() == Some(0) {
+                        // Errer code is written in res_val["code"]
+                        // cf: https://github.com/bitbankinc/bitbank-api-docs/blob/master/errors.md
+                        Err(BitbankHandleError::ApiError(res_val))
+                    }
+                    else {
+                        Ok(res)
+                    }
+                }
+            }
+
         } else {
             // error brace
-
             let error = match serde_json::from_slice(&response_body) {
                 Ok(parsed_error) => {
-                    // cf: https://github.com/bitbankinc/bitbank-api-docs/blob/master/errors.md
-                    if status == 10009 {
-                        BitbankHandleError::ReuqestLimitExceeded(parsed_error)
-                    } else {
-                        log::debug!("API error: {:?}", parsed_error);
-                        BitbankHandleError::ApiError(parsed_error)
-                    }
+                    log::debug!("API error: {:?}", parsed_error);
+                    BitbankHandleError::ApiError(parsed_error)
                 }
 
                 Err(error) => {

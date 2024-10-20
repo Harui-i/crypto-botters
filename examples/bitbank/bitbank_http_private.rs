@@ -16,21 +16,42 @@ async fn main () {
   client.update_default_option(BitbankOption::Key(key));
   client.update_default_option(BitbankOption::Secret(secret));
 
+  client.update_default_option(BitbankOption::HttpUrl(BitbankHttpUrl::Private));
+  client.update_default_option(BitbankOption::HttpAuth(true));
+
 
   // get assets information
   let res: serde_json::Value = client.get_no_query(
     "/user/assets",
-    [BitbankOption::HttpAuth(true), BitbankOption::HttpUrl(BitbankHttpUrl::Private)]
+    [BitbankOption::Default]
   ).await.unwrap();
   println!("Assets: {:?}", res);
 
-  // fetch active orders
-  let res2: serde_json::Value = client.get(
-    "/user/spot/active_orders",
-    Some(&serde_json::json!({"pair":"btc_jpy"})),
-    [BitbankOption::HttpAuth(true), BitbankOption::HttpUrl(BitbankHttpUrl::Private)],
+
+  // place limit order 0.001BTC @ 10 BTC/JPY
+
+  let res2: serde_json::Value = client.post(
+    "/user/spot/order",
+    Some(&serde_json::json!({
+      "pair":"btc_jpy",
+      "amount":"0.001",
+      "price":"10",
+      "side":"buy",
+      "type":"limit",
+      "post_only":true,
+    })),
+    [BitbankOption::Default],
   ).await.unwrap();
 
-  println!("Active orders: {:?}", res2);
+  println!("Order result: {:?}", res2);
+
+  // fetch active orders
+  let res3: serde_json::Value = client.get(
+    "/user/spot/active_orders",
+    Some(&serde_json::json!({"pair":"btc_jpy"})),
+    [BitbankOption::Default],
+  ).await.unwrap();
+
+  println!("Active orders: {:?}", res3);
 
 }
