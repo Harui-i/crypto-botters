@@ -92,8 +92,8 @@ pub struct BitbankRequestHandler<'a, R: DeserializeOwned> {
     _phantom: PhantomData<&'a R>,
 }
 
-pub struct BitbankWebSocketHandler {
-    message_handler: Box<dyn FnMut(serde_json::Value) -> () + Send>,
+pub struct BitbankWebSocketHandler<H: FnMut(serde_json::Value) + Send> {
+    message_handler: H,
     options: BitbankOptions,
 }
 
@@ -159,7 +159,7 @@ where
             let access_time_window = 1000;
 
             let sign_latter;
-            
+
             // GET method
             if body == "" {
                 sign_latter = path;
@@ -168,7 +168,6 @@ where
             else {
                 sign_latter = format!("{}", body);
             }
-
 
             let sign_content = format!(
                 "{}{}{}",
@@ -191,9 +190,15 @@ where
 
             let headers = request.headers_mut();
             headers.insert("ACCESS-KEY", key);
-            headers.insert("ACCESS-REQUEST-TIME", HeaderValue::from(access_request_time));
+            headers.insert(
+                "ACCESS-REQUEST-TIME",
+                HeaderValue::from(access_request_time),
+            );
             headers.insert("ACCESS-TIME-WINDOW", HeaderValue::from(access_time_window));
-            headers.insert("ACCESS-SIGNATURE", HeaderValue::from_str(&signature).unwrap());
+            headers.insert(
+                "ACCESS-SIGNATURE",
+                HeaderValue::from_str(&signature).unwrap(),
+            );
         }
 
         Ok(request)
@@ -216,23 +221,20 @@ where
             });
 
             match res {
-                Err(err) => {
-                    Err(err)
-                }
+                Err(err) => Err(err),
 
                 Ok(res) => {
-                    let res_val = serde_json::from_slice::<serde_json::Value>(&response_body).unwrap();
+                    let res_val =
+                        serde_json::from_slice::<serde_json::Value>(&response_body).unwrap();
                     if res_val["success"].as_i64() == Some(0) {
                         // Errer code is written in res_val["code"]
                         // cf: https://github.com/bitbankinc/bitbank-api-docs/blob/master/errors.md
                         Err(BitbankHandleError::ApiError(res_val))
-                    }
-                    else {
+                    } else {
                         Ok(res)
                     }
                 }
             }
-
         } else {
             // error brace
             let error = match serde_json::from_slice(&response_body) {
@@ -252,7 +254,7 @@ where
     }
 }
 
-impl WebSocketHandler for BitbankWebSocketHandler {
+impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BitbankWebSocketHandler<H> {
     fn websocket_config(&self) -> WebSocketConfig {
         // TODO
         let mut config = self.options.websocket_config.clone();
@@ -466,12 +468,12 @@ where
 }
 
 impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketOption<H> for BitbankOption {
-    type WebSocketHandler = BitbankWebSocketHandler;
+    type WebSocketHandler = BitbankWebSocketHandler<H>;
 
     #[inline(always)]
     fn websocket_handler(handler: H, options: Self::Options) -> Self::WebSocketHandler {
         BitbankWebSocketHandler {
-            message_handler: Box::new(handler),
+            message_handler: handler,
             options,
         }
     }
