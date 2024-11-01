@@ -79,11 +79,169 @@ pub enum BitbankWebSocketUrl {
     None,
 }
 
+/// https://github.com/bitbankinc/bitbank-api-docs/blob/master/errors.md
 #[derive(Debug)]
 pub enum BitbankHandleError {
     ApiError(serde_json::Value),
-    ReuqestLimitExceeded(serde_json::Value),
+    ReuqestLimitExceeded(serde_json::Value), // Error code 10009 and HTTP status 429 https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
     ParseError,
+
+    UrlNotFound(serde_json::Value),               // 10000
+    SystemError(serde_json::Value),               // 10001 and 10003
+    MalformedRequest(serde_json::Value),          // 10002
+    TimeoutWaitingForResponse(serde_json::Value), // 10005
+    SystemMaintenance(serde_json::Value),         // 10007
+    ServerIsBusy(serde_json::Value),              // 10008
+    RequestTooFrequent(serde_json::Value),        // 10009
+
+    AuthenticationFailed(serde_json::Value),     // 20001
+    InvalidAccessKey(serde_json::Value),         // 20002
+    AccessKeyNotFound(serde_json::Value),        // 20003
+    AccessNonceNotFound(serde_json::Value),      // 20004
+    InvalidAccessSignature(serde_json::Value),   // 20005
+    MfaFailed(serde_json::Value),                // 20011
+    SmsVerificationFailed(serde_json::Value),    // 20014
+    PleaseLogin(serde_json::Value),              // 20018
+    MissingOtpCode(serde_json::Value),           // 20023
+    MissingSmsCode(serde_json::Value),           // 20024
+    MissingOtpAndSmsCode(serde_json::Value),     // 20025
+    MfaTemporarilyLocked(serde_json::Value),     // 20026
+    MissingAccessRequestTime(serde_json::Value), // 20033
+    InvalidAccessRequestTime(serde_json::Value), // 20034, 20037
+    NoRequestSentWithinAccessTimeWindow(serde_json::Value), // 20035
+    AccessRequestTimeAndNonceNotFound(serde_json::Value), // 20036
+    InvalidAccessTimeWindow(serde_json::Value),  // 20038
+    InvalidAccessNonce(serde_json::Value),       // 20039
+
+    MissingOrderQuantity(serde_json::Value),          // 30001
+    MissingOrderId(serde_json::Value),                // 30006
+    MissingOrderIds(serde_json::Value),               // 30007
+    MissingAsset(serde_json::Value),                  // 30009, 30016
+    MissingOrderPrice(serde_json::Value),             // 30012
+    MissingSide(serde_json::Value),                   // 30013
+    MissingOrderType(serde_json::Value),              // 30015
+    MissingUuid(serde_json::Value),                   // 30019
+    MissingWithdrawAmount(serde_json::Value),         // 30039
+    MissingTriggerPrice(serde_json::Value),           // 30101
+    MissingWithdrawalType(serde_json::Value),         // 30103
+    MissingWithdrawalName(serde_json::Value),         // 30104
+    MissingVasp(serde_json::Value),                   // 30105
+    MissingBeneficiaryType(serde_json::Value),        // 30106
+    MissingBeneficiaryLastName(serde_json::Value),    // 30107
+    MissingBeneficiaryFirstName(serde_json::Value),   // 30108
+    MissingBeneficiaryLastKana(serde_json::Value),    // 30109
+    MissingBeneficiaryFirstKana(serde_json::Value),   // 30110
+    MissingBeneficiaryCompanyName(serde_json::Value), // 30111
+    MissingBeneficiaryCompanyKana(serde_json::Value), // 30112
+    MissingBeneficiaryCompanyType(serde_json::Value), // 30113
+    MissingBeneficiaryCompanyTypePosition(serde_json::Value), // 30114
+    MissingUploadedDocuments(serde_json::Value),      // 30115
+    MissingWithdrawalPurpose(serde_json::Value),      // 30116
+    MissingBeneficiaryCountry(serde_json::Value),     // 30117
+    MissingBeneficiaryZipCode(serde_json::Value),     // 30118
+    MissingBeneficiaryPrefecture(serde_json::Value),  // 30119
+    MissingBeneficiaryCity(serde_json::Value),        // 30120
+    MissingBeneficiaryAddress(serde_json::Value),     // 30121
+    MissingBeneficiaryBuilding(serde_json::Value),    // 30122
+    MissingExtractionRequestCategory(serde_json::Value), // 30123
+
+    InvalidOrderQuantity(serde_json::Value),    // 40001
+    InvalidCount(serde_json::Value),            // 40006
+    InvalidEndParam(serde_json::Value),         // 40007
+    InvalidEndId(serde_json::Value),            // 40008
+    InvalidFromId(serde_json::Value),           // 40009
+    InvalidOrderId(serde_json::Value),          // 40013
+    InvalidOrderIds(serde_json::Value),         // 40014
+    TooManyOrdersSpecified(serde_json::Value),  // 40015
+    InvalidAsset(serde_json::Value),            // 40017, 40025
+    InvalidOrderPrice(serde_json::Value),       // 40020
+    InvalidOrderSide(serde_json::Value),        // 40021
+    InvalidTradingStartTime(serde_json::Value), // 40022
+    InvalidOrderType(serde_json::Value),        // 40024
+    InvalidUuid(serde_json::Value),             // 40028
+    InvalidWithdrawAmount(serde_json::Value),   // 40048
+    InvalidTriggerPrice(serde_json::Value),     // 40112
+    InvalidPostOnly(serde_json::Value),         // 40113
+    PostOnlyCannotBeSpecifiedWithSuchOrderType(serde_json::Value), // 40114
+    InvalidWithdrawalType(serde_json::Value),   // 40116
+    InvalidWithdrawalName(serde_json::Value),   // 40117
+    InvalidVasp(serde_json::Value),             // 40118
+    InvalidBeneficiaryType(serde_json::Value),  // 40119
+    InvalidBeneficiaryLastName(serde_json::Value), // 40120
+    InvalidBeneficiaryFirstName(serde_json::Value), // 40121
+    InvalidBeneficiaryLastKana(serde_json::Value), // 40122
+    InvalidBeneficiaryFirstKana(serde_json::Value), // 40123
+    InvalidBeneficiaryCompanyName(serde_json::Value), // 40124
+    InvalidBeneficiaryCompanyKana(serde_json::Value), // 40125
+    InvalidBeneficiaryCompanyType(serde_json::Value), // 40126
+    InvalidBeneficiaryCompanyTypePosition(serde_json::Value), // 40127
+    InvalidOriginatorLabel(serde_json::Value),  // 40152
+    InvalidOriginatorLastName(serde_json::Value), // 40153
+    InvalidOriginatorFirstName(serde_json::Value), // 40154
+    InvalidOriginatorCompanyName(serde_json::Value), // 40155
+    InvalidOriginatorPrefecture(serde_json::Value), // 40156
+    InvalidOriginatorCity(serde_json::Value),   // 40157
+    InvalidOriginatorAddress(serde_json::Value), // 40158
+    InvalidOriginatorBuilding(serde_json::Value), // 40159
+    InvalidOriginatorSubstantialControllerName(serde_json::Value), // 40160
+    InvalidBeneficiarySubstantialControllerName(serde_json::Value), // 40163
+
+    AccountIsRestricted(serde_json::Value),  // 50003
+    AccountIsProvisional(serde_json::Value), // 50004
+    AccountIsBlocked(serde_json::Value),     // 50005, 50006
+    IdentityVerificationIsNotFinished(serde_json::Value), // 50008
+    OrderNotFound(serde_json::Value),        // 50009
+    OrderCannotBeCanceled(serde_json::Value), // 50010
+    ApiNotFound(serde_json::Value),          // 50011
+    OrderHasAlreadyBeenCanceled(serde_json::Value), // 50026
+    OrderHasAlreadyBeenExecuted(serde_json::Value), // 50027
+    WithdrawalsToThisAddressRequireAdditionalEntries(serde_json::Value), // 50033
+    VaspNotFound(serde_json::Value),         // 50034
+    CompanyInformationIsNotRegistered(serde_json::Value), // 50035
+    WithdrawalsTemporarilyRestricted(serde_json::Value), // 50037
+    CannotWithdrawToChosenVaspService(serde_json::Value), // 50038
+    OriginatorAlreadyRegistered(serde_json::Value), // 50043
+    OriginatorNotFound(serde_json::Value),   // 50044
+    DepositNotFound(serde_json::Value),      // 50045
+    CannotEditBeneficiaryUnderReview(serde_json::Value), // 50046
+    CannotEditDisabledBeneficiary(serde_json::Value), // 50047
+    CannotWithdrawToBeneficiaryUnderReview(serde_json::Value), // 50048
+    BeneficiaryRequiresAdditionalEntries(serde_json::Value), // 50049
+    CannotWithdrawToChosenBeneficiary(serde_json::Value), // 50050
+    CannotConfirmDepositWithOriginatorUnderReview(serde_json::Value), // 50051
+    OriginatorRequiresAdditionalEntries(serde_json::Value), // 50052
+    CannotEditOriginatorUnderReview(serde_json::Value), // 50053
+    CannotWithdrawBecauseInformationRegistrationForUnreflectedDepositsHasNotBeCompleted(
+        serde_json::Value,
+    ), // 50054
+
+    InsufficientAmount(serde_json::Value), // 60001
+    MarketBuyOrderQuantityHasExceededTheUpperLimit(serde_json::Value), // 60002
+    OrderQuantityHasExceededTheLimit(serde_json::Value), // 60003
+    OrderQuantityHasExceededTheLowerThreshold(serde_json::Value), // 60004
+    OrderPriceHasExceededTheUpperLimit(serde_json::Value), // 60005
+    OrderPriceHasExceededTheLowerLimit(serde_json::Value), // 60006
+    TooManySimultaneousOrders(serde_json::Value), // 60011
+    TriggerPriceHasExceededTheUpperLimit(serde_json::Value), // 60016
+    WithdrawalAmountHasExceededTheUpperLimit(serde_json::Value), // 60017
+
+    SystemErrorStopUpdateRequest(serde_json::Value), // 70001, 70002, 70003, 70012
+    OrderIsRestrictedDuringSuspensionOfTransactions(serde_json::Value), // 70004
+    BuyOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70005
+    SellOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70006
+    MarketOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70009, 70020
+    MinimumOrderQuantityIsIncreasedTemporarily(serde_json::Value), // 70010
+    SystemIsBusyStopUpdateRequest(serde_json::Value), // 70011
+    OrderAndCancelHasTemporarilyBeenRestricted(serde_json::Value), // 70013
+    WithdrawAndCancelRequestHasTemporarilyBeenRestricted(serde_json::Value), // 70014
+    LendingAndCancelRequestHasTemporarilyBeenRestricted(serde_json::Value), // 70015
+    LendingAndCancelRequestHasRestricted(serde_json::Value), // 70016
+    OrdersOnPairHaveBeenSuspended(serde_json::Value), // 70017
+    OrderAndCancelOnPairHaveBeenSuspended(serde_json::Value), // 70018
+    OrderCancelRequestIsInProgress(serde_json::Value), // 70019
+    LimitOrderPriceIsOverTheThreshold(serde_json::Value), // 70021
+    StopLimitOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70022
+    StopOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70023
 }
 
 /// A `struct` that implements [RequestHandler]
@@ -210,47 +368,196 @@ where
         _: HeaderMap,
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
-        if status.is_success() {
-            let res = serde_json::from_slice::<R>(&response_body).map_err(|error| {
+        match serde_json::from_slice::<R>(&response_body) {
+            // parse succeeded
+            Ok(res) => {
+                let res_val = serde_json::from_slice::<serde_json::Value>(&response_body).unwrap(); // the unwrap here *will* *probably* not fail.
+                if !status.is_success()
+                    || (status.is_success() && res_val["success"].as_i64() == Some(0))
+                {
+                    let error_code = res_val["data"]["code"].as_u64();
+
+                    match error_code {
+                        None => {
+                            log::error!("Parsed response body, but it doesn't have an error code. response body {:?}", String::from_utf8_lossy(&response_body));
+                            return Err(BitbankHandleError::ParseError);
+                        }
+
+                        Some(error_code) => {
+                            let ret_error  = match error_code {
+                                10000 => BitbankHandleError::UrlNotFound(res_val),
+                                10001 | 10003 => BitbankHandleError::SystemError(res_val),
+                                10002 => BitbankHandleError::MalformedRequest(res_val),
+                                10005 => BitbankHandleError::TimeoutWaitingForResponse(res_val),
+                                10007 => BitbankHandleError::SystemMaintenance(res_val),
+                                10008 => BitbankHandleError::ServerIsBusy(res_val),
+                                10009 => BitbankHandleError::ReuqestLimitExceeded(res_val),
+                                20001 => BitbankHandleError::AuthenticationFailed(res_val),
+                                20002 => BitbankHandleError::InvalidAccessKey(res_val),
+                                20003 => BitbankHandleError::AccessKeyNotFound(res_val),
+                                20004 => BitbankHandleError::AccessNonceNotFound(res_val),
+                                20005 => BitbankHandleError::InvalidAccessSignature(res_val),
+                                20011 => BitbankHandleError::MfaFailed(res_val),
+                                20014 => BitbankHandleError::SmsVerificationFailed(res_val),
+                                20018 => BitbankHandleError::PleaseLogin(res_val),
+                                20023 => BitbankHandleError::MissingOtpCode(res_val),
+                                20024 => BitbankHandleError::MissingSmsCode(res_val),
+                                20025 => BitbankHandleError::MissingOtpAndSmsCode(res_val),
+                                20026 => BitbankHandleError::MfaTemporarilyLocked(res_val),
+                                20033 => BitbankHandleError::MissingAccessRequestTime(res_val),
+                                20034 | 20037 => BitbankHandleError::InvalidAccessRequestTime(res_val),
+                                20035 => BitbankHandleError::NoRequestSentWithinAccessTimeWindow(res_val),
+                                20036 => BitbankHandleError::AccessRequestTimeAndNonceNotFound(res_val),
+                                20038 => BitbankHandleError::InvalidAccessTimeWindow(res_val),
+                                20039 => BitbankHandleError::InvalidAccessNonce(res_val),
+                                30001 => BitbankHandleError::MissingOrderQuantity(res_val),
+                                30006 => BitbankHandleError::MissingOrderId(res_val),
+                                30007 => BitbankHandleError::MissingOrderIds(res_val),
+                                30009 | 30016 => BitbankHandleError::MissingAsset(res_val),
+                                30012 => BitbankHandleError::MissingOrderPrice(res_val),
+                                30013 => BitbankHandleError::MissingSide(res_val),
+                                30015 => BitbankHandleError::MissingOrderType(res_val),
+                                30019 => BitbankHandleError::MissingUuid(res_val),
+                                30039 => BitbankHandleError::MissingWithdrawAmount(res_val),
+                                30101 => BitbankHandleError::MissingTriggerPrice(res_val),
+                                30103 => BitbankHandleError::MissingWithdrawalType(res_val),
+                                30104 => BitbankHandleError::MissingWithdrawalName(res_val),
+                                30105 => BitbankHandleError::MissingVasp(res_val),
+                                30106 => BitbankHandleError::MissingBeneficiaryType(res_val),
+                                30107 => BitbankHandleError::MissingBeneficiaryLastName(res_val),
+                                30108 => BitbankHandleError::MissingBeneficiaryFirstName(res_val),
+                                30109 => BitbankHandleError::MissingBeneficiaryLastKana(res_val),
+                                30110 => BitbankHandleError::MissingBeneficiaryFirstKana(res_val),
+                                30111 => BitbankHandleError::MissingBeneficiaryCompanyName(res_val),
+                                30112 => BitbankHandleError::MissingBeneficiaryCompanyKana(res_val),
+                                30113 => BitbankHandleError::MissingBeneficiaryCompanyType(res_val),
+                                30114 => BitbankHandleError::MissingBeneficiaryCompanyTypePosition(res_val),
+                                30115 => BitbankHandleError::MissingUploadedDocuments(res_val),
+                                30116 => BitbankHandleError::MissingWithdrawalPurpose(res_val),
+                                30117 => BitbankHandleError::MissingBeneficiaryCountry(res_val),
+                                30118 => BitbankHandleError::MissingBeneficiaryZipCode(res_val),
+                                30119 => BitbankHandleError::MissingBeneficiaryPrefecture(res_val),
+                                30120 => BitbankHandleError::MissingBeneficiaryCity(res_val),
+                                30121 => BitbankHandleError::MissingBeneficiaryAddress(res_val),
+                                30122 => BitbankHandleError::MissingBeneficiaryBuilding(res_val),
+                                30123 => BitbankHandleError::MissingExtractionRequestCategory(res_val),
+                                40001 => BitbankHandleError::InvalidOrderQuantity(res_val),
+                                40006 => BitbankHandleError::InvalidCount(res_val),
+                                40007 => BitbankHandleError::InvalidEndParam(res_val),
+                                40008 => BitbankHandleError::InvalidEndId(res_val),
+                                40009 => BitbankHandleError::InvalidFromId(res_val),
+                                40013 => BitbankHandleError::InvalidOrderId(res_val),
+                                40014 => BitbankHandleError::InvalidOrderIds(res_val),
+                                40015 => BitbankHandleError::TooManyOrdersSpecified(res_val),
+                                40017 | 40025 => BitbankHandleError::InvalidAsset(res_val),
+                                40020 => BitbankHandleError::InvalidOrderPrice(res_val),
+                                40021 => BitbankHandleError::InvalidOrderSide(res_val),
+                                40022 => BitbankHandleError::InvalidTradingStartTime(res_val),
+                                40024 => BitbankHandleError::InvalidOrderType(res_val),
+                                40028 => BitbankHandleError::InvalidUuid(res_val),
+                                40048 => BitbankHandleError::InvalidWithdrawAmount(res_val),
+                                40112 => BitbankHandleError::InvalidTriggerPrice(res_val),
+                                40113 => BitbankHandleError::InvalidPostOnly(res_val),
+                                40114 => BitbankHandleError::PostOnlyCannotBeSpecifiedWithSuchOrderType(res_val),
+                                40116 => BitbankHandleError::InvalidWithdrawalType(res_val),
+                                40117 => BitbankHandleError::InvalidWithdrawalName(res_val),
+                                40118 => BitbankHandleError::InvalidVasp(res_val),
+                                40119 => BitbankHandleError::InvalidBeneficiaryType(res_val),
+                                40120 => BitbankHandleError::InvalidBeneficiaryLastName(res_val),
+                                40121 => BitbankHandleError::InvalidBeneficiaryFirstName(res_val),
+                                40122 => BitbankHandleError::InvalidBeneficiaryLastKana(res_val),
+                                40123 => BitbankHandleError::InvalidBeneficiaryFirstKana(res_val),
+                                40124 => BitbankHandleError::InvalidBeneficiaryCompanyName(res_val),
+                                40125 => BitbankHandleError::InvalidBeneficiaryCompanyKana(res_val),
+                                40126 => BitbankHandleError::InvalidBeneficiaryCompanyType(res_val),
+                                40127 => BitbankHandleError::InvalidBeneficiaryCompanyTypePosition(res_val),
+                                40152 => BitbankHandleError::InvalidOriginatorLabel(res_val),
+                                40153 => BitbankHandleError::InvalidOriginatorLastName(res_val),
+                                40154 => BitbankHandleError::InvalidOriginatorFirstName(res_val),
+                                40155 => BitbankHandleError::InvalidOriginatorCompanyName(res_val),
+                                40156 => BitbankHandleError::InvalidOriginatorPrefecture(res_val),
+                                40157 => BitbankHandleError::InvalidOriginatorCity(res_val),
+                                40158 => BitbankHandleError::InvalidOriginatorAddress(res_val),
+                                40159 => BitbankHandleError::InvalidOriginatorBuilding(res_val),
+                                40160 => BitbankHandleError::InvalidOriginatorSubstantialControllerName(res_val),
+                                40163 => BitbankHandleError::InvalidBeneficiarySubstantialControllerName(res_val),
+                                50003 => BitbankHandleError::AccountIsRestricted(res_val),
+                                50004 => BitbankHandleError::AccountIsProvisional(res_val),
+                                50005 | 50006 => BitbankHandleError::AccountIsBlocked(res_val),
+                                50008 => BitbankHandleError::IdentityVerificationIsNotFinished(res_val),
+                                50009 => BitbankHandleError::OrderNotFound(res_val),
+                                50010 => BitbankHandleError::OrderCannotBeCanceled(res_val),
+                                50011 => BitbankHandleError::ApiNotFound(res_val),
+                                50026 => BitbankHandleError::OrderHasAlreadyBeenCanceled(res_val),
+                                50027 => BitbankHandleError::OrderHasAlreadyBeenExecuted(res_val),
+                                50033 => BitbankHandleError::WithdrawalsToThisAddressRequireAdditionalEntries(res_val),
+                                50034 => BitbankHandleError::VaspNotFound(res_val),
+                                50035 => BitbankHandleError::CompanyInformationIsNotRegistered(res_val),
+                                50037 => BitbankHandleError::WithdrawalsTemporarilyRestricted(res_val),
+                                50038 => BitbankHandleError::CannotWithdrawToChosenVaspService(res_val),
+                                50043 => BitbankHandleError::OriginatorAlreadyRegistered(res_val),
+                                50044 => BitbankHandleError::OriginatorNotFound(res_val),
+                                50045 => BitbankHandleError::DepositNotFound(res_val),
+                                50046 => BitbankHandleError::CannotEditBeneficiaryUnderReview(res_val),
+                                50047 => BitbankHandleError::CannotEditDisabledBeneficiary(res_val),
+                                50048 => BitbankHandleError::CannotWithdrawToBeneficiaryUnderReview(res_val),
+                                50049 => BitbankHandleError::BeneficiaryRequiresAdditionalEntries(res_val),
+                                50050 => BitbankHandleError::CannotWithdrawToChosenBeneficiary(res_val),
+                                50051 => BitbankHandleError::CannotConfirmDepositWithOriginatorUnderReview(res_val),
+                                50052 => BitbankHandleError::OriginatorRequiresAdditionalEntries(res_val),
+                                50053 => BitbankHandleError::CannotEditOriginatorUnderReview(res_val),
+                                50054 => BitbankHandleError::CannotWithdrawBecauseInformationRegistrationForUnreflectedDepositsHasNotBeCompleted(res_val),
+                                60001 => BitbankHandleError::InsufficientAmount(res_val),
+                                60002 => BitbankHandleError::MarketBuyOrderQuantityHasExceededTheUpperLimit(res_val),
+                                60003 => BitbankHandleError::OrderQuantityHasExceededTheLimit(res_val),
+                                60004 => BitbankHandleError::OrderQuantityHasExceededTheLowerThreshold(res_val),
+                                60005 => BitbankHandleError::OrderPriceHasExceededTheUpperLimit(res_val),
+                                60006 => BitbankHandleError::OrderPriceHasExceededTheLowerLimit(res_val),
+                                60011 => BitbankHandleError::TooManySimultaneousOrders(res_val),
+                                60016 => BitbankHandleError::TriggerPriceHasExceededTheUpperLimit(res_val),
+                                60017 => BitbankHandleError::WithdrawalAmountHasExceededTheUpperLimit(res_val),
+                                70001 | 70002 | 70003 | 70012 => BitbankHandleError::SystemErrorStopUpdateRequest(res_val),
+                                70004 => BitbankHandleError::OrderIsRestrictedDuringSuspensionOfTransactions(res_val),
+                                70005 => BitbankHandleError::BuyOrderHasTemporarilyBeenRestricted(res_val),
+                                70006 => BitbankHandleError::SellOrderHasTemporarilyBeenRestricted(res_val),
+                                70009 | 70020 => BitbankHandleError::MarketOrderHasTemporarilyBeenRestricted(res_val),
+                                70010 => BitbankHandleError::MinimumOrderQuantityIsIncreasedTemporarily(res_val),
+                                70011 => BitbankHandleError::SystemIsBusyStopUpdateRequest(res_val),
+                                70013 => BitbankHandleError::OrderAndCancelHasTemporarilyBeenRestricted(res_val),
+                                70014 => BitbankHandleError::WithdrawAndCancelRequestHasTemporarilyBeenRestricted(res_val),
+                                70015 => BitbankHandleError::LendingAndCancelRequestHasTemporarilyBeenRestricted(res_val),
+                                70016 => BitbankHandleError::LendingAndCancelRequestHasRestricted(res_val),
+                                70017 => BitbankHandleError::OrdersOnPairHaveBeenSuspended(res_val),
+                                70018 => BitbankHandleError::OrderAndCancelOnPairHaveBeenSuspended(res_val),
+                                70019 => BitbankHandleError::OrderCancelRequestIsInProgress(res_val),
+                                70021 => BitbankHandleError::LimitOrderPriceIsOverTheThreshold(res_val),
+                                70022 => BitbankHandleError::StopLimitOrderHasTemporarilyBeenRestricted(res_val),
+                                70023 => BitbankHandleError::StopOrderHasTemporarilyBeenRestricted(res_val),
+                                _ => BitbankHandleError::ApiError(res_val), // Unknown error code
+                            };
+
+                            log::error!("Error in handle_response: {:?}, HTTP response status: {}", ret_error, status);
+                            return Err(ret_error);
+                        }
+                    }
+
+                } else {
+                    return Ok(res);
+                }
+            }
+
+            // failed to parse
+            Err(error) => {
                 log::debug!("Failed to parse response: {:?}", error);
                 log::debug!(
                     "Response body: {:?}",
                     String::from_utf8_lossy(&response_body)
                 );
-                BitbankHandleError::ParseError
-            });
 
-            match res {
-                Err(err) => Err(err),
-
-                Ok(res) => {
-                    let res_val =
-                        serde_json::from_slice::<serde_json::Value>(&response_body).unwrap();
-                    if res_val["success"].as_i64() == Some(0) {
-                        // Errer code is written in res_val["code"]
-                        // cf: https://github.com/bitbankinc/bitbank-api-docs/blob/master/errors.md
-                        Err(BitbankHandleError::ApiError(res_val))
-                    } else {
-                        Ok(res)
-                    }
-                }
+                return Err(BitbankHandleError::ParseError);
             }
-        } else {
-            // error brace
-            let error = match serde_json::from_slice(&response_body) {
-                Ok(parsed_error) => {
-                    log::debug!("API error: {:?}", parsed_error);
-                    BitbankHandleError::ApiError(parsed_error)
-                }
-
-                Err(error) => {
-                    log::debug!("Failed to parse error response due to an error: {}", error);
-                    BitbankHandleError::ParseError
-                }
-            };
-
-            Err(error)
         }
+
     }
 }
 
