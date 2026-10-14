@@ -1,11 +1,8 @@
+use crypto_botters::{coincheck::CoincheckOption, Client};
 use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crypto_botters::{
-    Client,
-    coincheck::{CoincheckOption},
-};
 
 #[tokio::main]
 async fn main() {
@@ -39,19 +36,25 @@ async fn main() {
     }
 
     // https://coincheck.com/ja/documents/exchange/api#ticker
-    let ticker: Ticker = client.get(
-        "/api/ticker",
-        Some(&TickerParams { pair: "etc_jpy" }),
-        [CoincheckOption::Default],
-    ).await.expect("failed to get ticker");
+    let ticker: Ticker = client
+        .get(
+            "/api/ticker",
+            Some(&TickerParams { pair: "etc_jpy" }),
+            [CoincheckOption::Default],
+        )
+        .await
+        .expect("failed to get ticker");
     println!("ETC ticker:\n{:?}", ticker);
 
     // not typed
     // https://coincheck.com/ja/documents/exchange/api#order-book
-    let orderbook: serde_json::Value = client.get(
-        "/api/order_books",
-        Some(&json!({ "pair": "etc_jpy" })),
-        [CoincheckOption::Default],
-    ).await.expect("failed get orderbook");
+    let orderbook: serde_json::Value = client
+        .get(
+            "/api/order_books",
+            Some(&json!({ "pair": "etc_jpy" })),
+            [CoincheckOption::Default],
+        )
+        .await
+        .expect("failed get orderbook");
     println!("ETC asks:\n{}", orderbook["asks"]);
 }

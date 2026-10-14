@@ -1,8 +1,11 @@
-use std::env;
+use crypto_botters::{
+    binance::{BinanceAuth, BinanceHttpUrl, BinanceOption},
+    Client,
+};
 use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
-use crypto_botters::{Client, binance::{BinanceAuth, BinanceHttpUrl, BinanceOption}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -38,17 +41,29 @@ async fn main() {
         is_best_match: bool,
     }
 
-    let trades: Vec<OldTrade> = client.get(
-        "/api/v3/historicalTrades",
-        Some(&TradesLookupParams { symbol: "BTCUSDT", limit: 3 }),
-        [BinanceOption::HttpUrl(BinanceHttpUrl::Spot), BinanceOption::HttpAuth(BinanceAuth::Key)],
-    ).await.expect("failed to get trades");
+    let trades: Vec<OldTrade> = client
+        .get(
+            "/api/v3/historicalTrades",
+            Some(&TradesLookupParams {
+                symbol: "BTCUSDT",
+                limit: 3,
+            }),
+            [
+                BinanceOption::HttpUrl(BinanceHttpUrl::Spot),
+                BinanceOption::HttpAuth(BinanceAuth::Key),
+            ],
+        )
+        .await
+        .expect("failed to get trades");
     println!("Trade price:\n{:?}", trades[0].price);
 
     // not typed
-    let dusts: serde_json::Value = client.post_no_body(
-        "https://api.binance.com/sapi/v1/asset/dust-btc",
-        [BinanceOption::HttpAuth(BinanceAuth::Sign)],
-    ).await.expect("failed get dusts");
+    let dusts: serde_json::Value = client
+        .post_no_body(
+            "https://api.binance.com/sapi/v1/asset/dust-btc",
+            [BinanceOption::HttpAuth(BinanceAuth::Sign)],
+        )
+        .await
+        .expect("failed get dusts");
     println!("My dust assets(BTC):\n{:?}", dusts["totalTransferBtc"]);
 }

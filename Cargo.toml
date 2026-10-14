@@ -1,20 +1,24 @@
 [workspace]
+exclude = ["generic-api-client"]
 
 [package]
-name = "crypto-botters"
-version = "0.6.0"
-authors = ["negi_grass"]
+name = "crypto-botters-bitbank"
+version = "0.7.0"
+authors = ["negi_grass", "Harui-i"]
 edition = "2021"
-description = "A library for cryptocurrency exchange APIs."
+description = "A fork of crypto-botters with bitbank REST and WebSocket API support."
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/negi-grass/crypto-botters"
-documentation = "https://docs.rs/crypto-botters"
-repository = "https://github.com/negi-grass/crypto-botters"
+homepage = "https://github.com/Harui-i/crypto-botters"
+documentation = "https://docs.rs/crypto-botters-bitbank"
+repository = "https://github.com/Harui-i/crypto-botters"
 keywords = ["cryptocurrency", "finance", "trading", "client", "websocket"]
 categories = ["api-bindings", "asynchronous", "cryptography::cryptocurrencies", "authentication"]
 autoexamples = false
 exclude = ["/.idea", "/.github"]
+
+[lib]
+name = "crypto_botters"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -28,7 +32,7 @@ binance = ["dep:serde_urlencoded"]
 bitflyer = ["dep:rand"]
 bybit = ["dep:serde_urlencoded", "dep:rand"]
 coincheck = ["dep:serde_urlencoded"]
-bitbank = ["dep:serde_urlencoded"]
+bitbank = []
 
 native-tls = ["generic-api-client/native-tls"]
 native-tls-vendored = ["generic-api-client/native-tls-vendored"]
@@ -36,7 +40,7 @@ rustls-tls-native-roots = ["generic-api-client/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["generic-api-client/rustls-tls-webpki-roots"]
 
 [dependencies]
-generic-api-client = { version = "0.3", path = "generic-api-client" }
+generic-api-client = "0.3"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 hmac = "0.12.1"
@@ -47,147 +51,184 @@ serde_urlencoded = { version = "0.7.1", optional = true }
 rand = { version = "0.8.5", optional = true }
 
 [dev-dependencies]
-crypto-botters = { path = ".", features = ["full"] }
-tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
+reqwest = { version = "0.11.22", default-features = false }
+tokio-tungstenite = "0.21.0"
+futures-util = "0.3.29"
+tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
 rust_decimal = { version = "1.33.0", features = ["serde-with-str", "serde-with-float"] }
 env_logger = "0.10.1"
 
 [[example]]
 name = "binance_http_private"
 path = "examples/binance/binance_http_private.rs"
+required-features = ["binance"]
 
 [[example]]
 name = "binance_http_public"
 path = "examples/binance/binance_http_public.rs"
+required-features = ["binance"]
 
 [[example]]
 name = "binance_websocket_private"
 path = "examples/binance/binance_websocket_private.rs"
+required-features = ["binance"]
 
 [[example]]
 name = "binance_websocket_public"
 path = "examples/binance/binance_websocket_public.rs"
+required-features = ["binance"]
 
 [[example]]
 name = "binance_spawn"
 path = "examples/binance/binance_spawn.rs"
+required-features = ["binance"]
 
 [[example]]
 name = "bitbank_http_private"
 path = "examples/bitbank/bitbank_http_private.rs"
+required-features = ["bitbank"]
 
 [[example]]
 name = "bitbank_http_public"
 path = "examples/bitbank/bitbank_http_public.rs"
+required-features = ["bitbank"]
 
 [[example]]
 name = "bitbank_websocket_public"
 path = "examples/bitbank/bitbank_websocket_public.rs"
+required-features = ["bitbank"]
 
 [[example]]
 name = "bitbank_websocket_orderbook"
 path = "examples/bitbank/bitbank_websocket_orderbook.rs"
+required-features = ["bitbank"]
 
 [[example]]
 name = "bitflyer_http_private"
 path = "examples/bitflyer/bitflyer_http_private.rs"
+required-features = ["bitflyer"]
 
 [[example]]
 name = "bitflyer_http_public"
 path = "examples/bitflyer/bitflyer_http_public.rs"
+required-features = ["bitflyer"]
 
 [[example]]
 name = "bitflyer_websocket_private"
 path = "examples/bitflyer/bitflyer_websocket_private.rs"
+required-features = ["bitflyer"]
 
 [[example]]
 name = "bitflyer_websocket_public"
 path = "examples/bitflyer/bitflyer_websocket_public.rs"
+required-features = ["bitflyer"]
 
 [[example]]
 name = "bybit_unified_margin_v3"
 path = "examples/bybit/v3/bybit_unified_margin_v3.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_contract_v3"
 path = "examples/bybit/v3/bybit_contract_v3.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_inverse_perpetual_v2"
 path = "examples/bybit/previous_version/bybit_inverse_perpetual_v2.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_usdt_perpetual_v2"
 path = "examples/bybit/previous_version/bybit_usdt_perpetual_v2.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_inverse_futures_v2"
 path = "examples/bybit/previous_version/bybit_inverse_futures_v2.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_spot_v3"
 path = "examples/bybit/v3/bybit_spot_v3.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_spot_v1"
 path = "examples/bybit/previous_version/bybit_spot_v1.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_account_asset_v3"
 path = "examples/bybit/v3/bybit_account_asset_v3.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_account_asset_v1"
 path = "examples/bybit/previous_version/bybit_account_asset_v1.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_copy_trading_v3"
 path = "examples/bybit/v3/bybit_copy_trading_v3.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_usdc_option_v1"
 path = "examples/bybit/previous_version/bybit_usdc_option_v1.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_usdc_perpetual_v1"
 path = "examples/bybit/previous_version/bybit_usdc_perpetual_v1.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_usdt_contract_v3_websocket_public"
 path = "examples/bybit/v3/bybit_usdt_contract_v3_websocket_public.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_usdc_contract_v3_websocket_public"
 path = "examples/bybit/v3/bybit_usdc_contract_v3_websocket_public.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_spot_v3_websocket_public"
 path = "examples/bybit/v3/bybit_spot_v3_websocket_public.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_spot_v3_websocket_private"
 path = "examples/bybit/v3/bybit_spot_v3_websocket_private.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_v5"
 path = "examples/bybit/v5/bybit_v5.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_v5_websocket_public"
 path = "examples/bybit/v5/bybit_v5_websocket_public.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "bybit_v5_websocket_private"
 path = "examples/bybit/v5/bybit_v5_websocket_private.rs"
+required-features = ["bybit"]
 
 [[example]]
 name = "coincheck_http_public"
 path = "examples/coincheck/coincheck_http_public.rs"
+required-features = ["coincheck"]
 
 [[example]]
 name = "coincheck_http_private"
 path = "examples/coincheck/coincheck_http_private.rs"
+required-features = ["coincheck"]
 
 [[example]]
 name = "coincheck_websocket_public"
 path = "examples/coincheck/coincheck_websocket_public.rs"
+required-features = ["coincheck"]

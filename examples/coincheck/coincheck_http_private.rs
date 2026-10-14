@@ -1,10 +1,7 @@
-use std::env;
+use crypto_botters::{coincheck::CoincheckOption, Client};
 use log::LevelFilter;
 use serde_json::json;
-use crypto_botters::{
-    Client,
-    coincheck::{CoincheckOption},
-};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -18,10 +15,13 @@ async fn main() {
     client.update_default_option(CoincheckOption::Secret(secret));
 
     // https://coincheck.com/ja/documents/exchange/api#order-opens
-    let open_orders: serde_json::Value = client.get_no_query(
-        "/api/exchange/orders/opens",
-        [CoincheckOption::HttpAuth(true)],
-    ).await.expect("failed get orders");
+    let open_orders: serde_json::Value = client
+        .get_no_query(
+            "/api/exchange/orders/opens",
+            [CoincheckOption::HttpAuth(true)],
+        )
+        .await
+        .expect("failed get orders");
     println!("open orders:\n{}", open_orders);
 
     // https://coincheck.com/ja/documents/exchange/api#order-new

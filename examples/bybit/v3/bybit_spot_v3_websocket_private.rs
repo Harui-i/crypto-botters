@@ -1,9 +1,9 @@
-use std::{
-    time::Duration,
-    env,
+use crypto_botters::{
+    bybit::{BybitOption, BybitWebSocketUrl},
+    Client,
 };
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::{BybitOption, BybitWebSocketUrl}};
+use std::{env, time::Duration};
 
 #[tokio::main]
 async fn main() {
@@ -17,15 +17,18 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
 
     // https://bybit-exchange.github.io/docs/spot/v3/#t-websockettrade
-    let connection = client.websocket(
-        "/spot/private/v3",
-        |message| println!("{}", message),
-        [
-            BybitOption::WebSocketTopics(vec!["order".to_owned()]),
-            BybitOption::WebSocketUrl(BybitWebSocketUrl::Bytick),
-            BybitOption::WebSocketAuth(true),
-        ],
-    ).await.expect("failed to connect websocket");
+    let connection = client
+        .websocket(
+            "/spot/private/v3",
+            |message| println!("{}", message),
+            [
+                BybitOption::WebSocketTopics(vec!["order".to_owned()]),
+                BybitOption::WebSocketUrl(BybitWebSocketUrl::Bytick),
+                BybitOption::WebSocketAuth(true),
+            ],
+        )
+        .await
+        .expect("failed to connect websocket");
     // receive messages
     tokio::time::sleep(Duration::from_secs(5)).await;
 

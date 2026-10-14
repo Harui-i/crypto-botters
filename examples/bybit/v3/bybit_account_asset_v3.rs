@@ -1,6 +1,9 @@
-use std::env;
+use crypto_botters::{
+    bybit::{BybitHttpAuth, BybitOption},
+    Client,
+};
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::{BybitOption, BybitHttpAuth}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -14,9 +17,12 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
 
     // private GET
-    let asset_info: serde_json::Value = client.get_no_query(
-        "/asset/v3/private/transfer/asset-info/query",
-        [BybitOption::HttpAuth(BybitHttpAuth::V3AndAbove)],
-    ).await.expect("failed to get aseet info");
+    let asset_info: serde_json::Value = client
+        .get_no_query(
+            "/asset/v3/private/transfer/asset-info/query",
+            [BybitOption::HttpAuth(BybitHttpAuth::V3AndAbove)],
+        )
+        .await
+        .expect("failed to get aseet info");
     println!("Asset info:\n{}", asset_info);
 }

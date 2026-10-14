@@ -1,6 +1,9 @@
-use std::env;
+use crypto_botters::{
+    bybit::{BybitHttpAuth, BybitOption},
+    Client,
+};
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::{BybitOption, BybitHttpAuth}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -14,9 +17,12 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
 
     // private GET
-    let internal_transfers: serde_json::Value = client.get_no_query(
-        "/asset/v1/private/transfer/list",
-        [BybitOption::HttpAuth(BybitHttpAuth::BelowV3)],
-    ).await.expect("failed to get internal transfer list");
+    let internal_transfers: serde_json::Value = client
+        .get_no_query(
+            "/asset/v1/private/transfer/list",
+            [BybitOption::HttpAuth(BybitHttpAuth::BelowV3)],
+        )
+        .await
+        .expect("failed to get internal transfer list");
     println!("Internal transfers:\n{}", internal_transfers);
 }

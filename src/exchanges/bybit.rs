@@ -17,8 +17,10 @@ pub type BybitRequestResult<T> = Result<T, BybitRequestError>;
 pub type BybitRequestError = RequestError<&'static str, BybitHandlerError>;
 
 /// Options that can be set when creating handlers
+#[derive(Default)]
 pub enum BybitOption {
     /// [Default] variant, does nothing
+    #[default]
     Default,
     /// API key
     Key(String),
@@ -633,10 +635,4 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketOption<H> for BybitO
 
 impl HandlerOption for BybitOption {
     type Options = BybitOptions;
-}
-
-impl Default for BybitOption {
-    fn default() -> Self {
-        Self::Default
-    }
 }

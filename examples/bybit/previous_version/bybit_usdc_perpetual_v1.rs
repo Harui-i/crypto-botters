@@ -1,7 +1,10 @@
-use std::env;
+use crypto_botters::{
+    bybit::{BybitHttpAuth, BybitOption},
+    Client,
+};
 use log::LevelFilter;
 use serde_json::json;
-use crypto_botters::{Client, bybit::{BybitOption, BybitHttpAuth}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -15,26 +18,35 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
 
     // private POST
-    let cancel_all: serde_json::Value = client.post(
-        "/perpetual/usdc/openapi/private/v1/cancel-all",
-        Some(json!({"symbol": "BTCPERP", "orderFilter": "Order"})),
-        [BybitOption::HttpAuth(BybitHttpAuth::UsdcContractV1)],
-    ).await.expect("failed to cancel orders");
+    let cancel_all: serde_json::Value = client
+        .post(
+            "/perpetual/usdc/openapi/private/v1/cancel-all",
+            Some(json!({"symbol": "BTCPERP", "orderFilter": "Order"})),
+            [BybitOption::HttpAuth(BybitHttpAuth::UsdcContractV1)],
+        )
+        .await
+        .expect("failed to cancel orders");
     println!("Cancel all result:\n{}", cancel_all);
 
     // private POST
-    let open_orders: serde_json::Value = client.post(
-        "/option/usdc/openapi/private/v1/query-active-orders",
-        Some(json!({"category": "PERPETUAL"})),
-        [BybitOption::HttpAuth(BybitHttpAuth::UsdcContractV1)],
-    ).await.expect("failed to get orders");
+    let open_orders: serde_json::Value = client
+        .post(
+            "/option/usdc/openapi/private/v1/query-active-orders",
+            Some(json!({"category": "PERPETUAL"})),
+            [BybitOption::HttpAuth(BybitHttpAuth::UsdcContractV1)],
+        )
+        .await
+        .expect("failed to get orders");
     println!("Open orders:\n{}", open_orders);
 
     // public GET
-    let symbol_info: serde_json::Value = client.get(
-        "/perpetual/usdc/openapi/public/v1/tick",
-        Some(&[("symbol", "BTCPERP")]),
-        [BybitOption::Default],
-    ).await.expect("failed to get symbol info");
+    let symbol_info: serde_json::Value = client
+        .get(
+            "/perpetual/usdc/openapi/public/v1/tick",
+            Some(&[("symbol", "BTCPERP")]),
+            [BybitOption::Default],
+        )
+        .await
+        .expect("failed to get symbol info");
     println!("Symbol info:\n{}", symbol_info);
 }

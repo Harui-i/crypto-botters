@@ -1,6 +1,6 @@
+use crypto_botters::{bybit::BybitOption, Client};
 use log::LevelFilter;
 use serde::Serialize;
-use crypto_botters::{Client, bybit::BybitOption};
 
 #[tokio::main]
 async fn main() {
@@ -16,10 +16,16 @@ async fn main() {
         symbol: &'a str,
     }
 
-    let symbol_info: serde_json::Value = client.get(
-        "/derivatives/v3/public/tickers",
-        Some(&SymbolInfoParams { category: "linear", symbol: "BTCUSDT" }),
-        [BybitOption::Default],
-    ).await.expect("failed get symbol info");
+    let symbol_info: serde_json::Value = client
+        .get(
+            "/derivatives/v3/public/tickers",
+            Some(&SymbolInfoParams {
+                category: "linear",
+                symbol: "BTCUSDT",
+            }),
+            [BybitOption::Default],
+        )
+        .await
+        .expect("failed get symbol info");
     println!("Unified margin BTCUSDT info:\n{}", symbol_info);
 }

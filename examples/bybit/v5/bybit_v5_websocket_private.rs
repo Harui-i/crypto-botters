@@ -1,6 +1,6 @@
-use std::{env, time::Duration};
+use crypto_botters::{bybit::BybitOption, Client};
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::BybitOption};
+use std::{env, time::Duration};
 
 #[tokio::main]
 async fn main() {
@@ -13,14 +13,17 @@ async fn main() {
     client.update_default_option(BybitOption::Key(key));
     client.update_default_option(BybitOption::Secret(secret));
 
-    let connection = client.websocket(
-        "/v5/private",
-        |message| println!("{}", message),
-        [
-            BybitOption::WebSocketTopics(vec!["wallet".to_owned()]),
-            BybitOption::WebSocketAuth(true),
-        ],
-    ).await.expect("failed to connect websocket");
+    let connection = client
+        .websocket(
+            "/v5/private",
+            |message| println!("{}", message),
+            [
+                BybitOption::WebSocketTopics(vec!["wallet".to_owned()]),
+                BybitOption::WebSocketAuth(true),
+            ],
+        )
+        .await
+        .expect("failed to connect websocket");
     // receive messages
     tokio::time::sleep(Duration::from_secs(300)).await;
 

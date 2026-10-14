@@ -16,8 +16,10 @@ pub type BinanceRequestResult<T> = Result<T, BinanceRequestError>;
 pub type BinanceRequestError = RequestError<&'static str, BinanceHandlerError>;
 
 /// Options that can be set when creating handlers
+#[derive(Default)]
 pub enum BinanceOption {
     /// [Default] variant, does nothing
+    #[default]
     Default,
     /// API key
     Key(String),
@@ -397,10 +399,4 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketOption<H> for Binanc
 
 impl HandlerOption for BinanceOption {
     type Options = BinanceOptions;
-}
-
-impl Default for BinanceOption {
-    fn default() -> Self {
-        Self::Default
-    }
 }

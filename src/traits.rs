@@ -1,15 +1,15 @@
-use std::fmt::Debug;
 use generic_api_client::{http, websocket};
+use std::fmt::Debug;
 
 /// A `trait` that represents an option which can be set when creating handlers
 pub trait HandlerOption: Default {
-    type Options: HandlerOptions<OptionItem=Self>;
+    type Options: HandlerOptions<OptionItem = Self>;
 }
 
 /// Set of [HandlerOption] s
 pub trait HandlerOptions: Default + Clone + Debug {
     /// The element of this set
-    type OptionItem: HandlerOption<Options=Self>;
+    type OptionItem: HandlerOption<Options = Self>;
 
     fn update(&mut self, option: Self::OptionItem);
 }

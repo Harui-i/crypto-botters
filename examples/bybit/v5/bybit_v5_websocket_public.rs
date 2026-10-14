@@ -1,6 +1,6 @@
-use std::time::Duration;
+use crypto_botters::{bybit::BybitOption, Client};
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::BybitOption};
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -9,13 +9,16 @@ async fn main() {
         .init();
     let client = Client::new();
 
-    let connection = client.websocket(
-        "/v5/public/spot",
-        |message| println!("{}", message),
-        [
-            BybitOption::WebSocketTopics(vec!["publicTrade.BTCUSDT".to_owned()]),
-        ],
-    ).await.expect("failed to connect websocket");
+    let connection = client
+        .websocket(
+            "/v5/public/spot",
+            |message| println!("{}", message),
+            [BybitOption::WebSocketTopics(vec![
+                "publicTrade.BTCUSDT".to_owned()
+            ])],
+        )
+        .await
+        .expect("failed to connect websocket");
     // receive messages
     tokio::time::sleep(Duration::from_secs(5)).await;
 

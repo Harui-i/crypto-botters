@@ -1,9 +1,9 @@
 use crypto_botters::{bitbank::BitbankOption, Client};
 use log::LevelFilter;
-use serde::Deserialize;
 use rust_decimal::prelude::*;
-use std::sync::{Arc, Mutex};
+use serde::Deserialize;
 use std::fmt;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use std::collections::BTreeMap;
@@ -46,30 +46,29 @@ struct DepthWhole {
 }
 
 struct DepthData {
-    diff_buffer : BTreeMap<String, DepthDiff>,
-    asks : BTreeMap<String, Decimal>, // price, amount
-    bids : BTreeMap<String, Decimal>,
+    diff_buffer: BTreeMap<String, DepthDiff>,
+    asks: BTreeMap<String, Decimal>, // price, amount
+    bids: BTreeMap<String, Decimal>,
 
-    is_complete : bool,
+    is_complete: bool,
 }
 
 impl fmt::Display for DepthData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         assert!(self.is_complete);
 
-        write!(f, "\n")?; 
+        writeln!(f)?;
 
         for (price, amount) in self.asks.iter().take(20).rev() {
-            write!(f, "{}\t{:.4}\n", price, amount)?;
+            writeln!(f, "{}\t{:.4}", price, amount)?;
         }
-        write!(f, "asks\n")?;
-        write!(f, "mid\n")?;
+        writeln!(f, "asks")?;
+        writeln!(f, "mid")?;
 
-        write!(f, "bids\n")?;
+        writeln!(f, "bids")?;
         for (price, amount) in self.bids.iter().rev().take(20) {
-            write!(f, "{}\t{:.4}\n", price, amount)?;
+            writeln!(f, "{}\t{:.4}", price, amount)?;
         }
-
 
         Ok(())
     }
@@ -78,10 +77,10 @@ impl fmt::Display for DepthData {
 impl DepthData {
     fn new() -> Self {
         DepthData {
-            diff_buffer : BTreeMap::new(),
-            asks : BTreeMap::new(),
-            bids : BTreeMap::new(),
-            is_complete : false,
+            diff_buffer: BTreeMap::new(),
+            asks: BTreeMap::new(),
+            bids: BTreeMap::new(),
+            is_complete: false,
         }
     }
 
@@ -92,41 +91,36 @@ impl DepthData {
     fn insert_diff(&mut self, diff: &DepthDiff) {
         for ask in &diff.a {
             let price = ask[0].as_str().unwrap();
-            let amount : Decimal = ask[1].as_str().unwrap().parse().unwrap();
+            let amount: Decimal = ask[1].as_str().unwrap().parse().unwrap();
 
             if amount == Decimal::zero() {
                 if self.asks.contains_key(price) {
                     self.asks.remove(price);
                 }
-            }
-
-            else {
+            } else {
                 self.asks.insert(price.to_string(), amount);
             }
         }
 
         for bid in &diff.b {
             let price = bid[0].as_str().unwrap();
-            let amount : Decimal = bid[1].as_str().unwrap().parse().unwrap();
+            let amount: Decimal = bid[1].as_str().unwrap().parse().unwrap();
 
             if amount == Decimal::zero() {
                 if self.bids.contains_key(price) {
                     self.bids.remove(price);
                 }
-            }
-
-            else {
+            } else {
                 self.bids.insert(price.to_string(), amount);
             }
         }
-
     }
 
-    fn update_whole(&mut self, whole : DepthWhole) {
+    fn update_whole(&mut self, whole: DepthWhole) {
         let seq = whole.sequenceId.clone();
 
-
-        let keys_to_remove : Vec<String> = self.diff_buffer
+        let keys_to_remove: Vec<String> = self
+            .diff_buffer
             .iter()
             .filter(|(key, _)| key < &&seq)
             .map(|(key, _)| key.clone())
@@ -135,13 +129,13 @@ impl DepthData {
         for key in keys_to_remove {
             self.diff_buffer.remove(&key);
         }
-        
+
         self.asks.clear();
         self.bids.clear();
 
         for ask in whole.asks {
             let price = ask[0].as_str().unwrap();
-            let amount : Decimal = ask[1].as_str().unwrap().parse().unwrap();
+            let amount: Decimal = ask[1].as_str().unwrap().parse().unwrap();
 
             assert_ne!(amount, Decimal::zero());
             self.asks.insert(price.to_string(), amount);
@@ -149,54 +143,46 @@ impl DepthData {
 
         for bid in whole.bids {
             let price = bid[0].as_str().unwrap();
-            let amount : Decimal = bid[1].as_str().unwrap().parse().unwrap();
+            let amount: Decimal = bid[1].as_str().unwrap().parse().unwrap();
 
             assert_ne!(amount, Decimal::zero());
             self.bids.insert(price.to_string(), amount);
         }
 
-
         self.process_diff_buffer();
         self.is_complete = true;
     }
 
-
     fn process_diff_buffer(&mut self) {
-
         for depth_diff in self.diff_buffer.values() {
             for ask in &depth_diff.a {
                 let price = ask[0].as_str().unwrap();
-                let amount : Decimal = ask[1].as_str().unwrap().parse().unwrap();
+                let amount: Decimal = ask[1].as_str().unwrap().parse().unwrap();
 
                 if amount == Decimal::zero() {
                     self.asks.remove(price);
-                }
-                else {
+                } else {
                     self.asks.insert(price.to_string(), amount);
                 }
-
             }
 
             for bid in &depth_diff.b {
                 let price = bid[0].as_str().unwrap();
-                let amount : Decimal = bid[1].as_str().unwrap().parse().unwrap();
+                let amount: Decimal = bid[1].as_str().unwrap().parse().unwrap();
 
                 if amount == Decimal::zero() {
                     self.bids.remove(price);
-                } 
-                else {
+                } else {
                     self.bids.insert(price.to_string(), amount);
                 }
             }
         }
-
 
         self.diff_buffer.clear();
 
         assert!(self.diff_buffer.is_empty());
     }
 }
-
 
 #[tokio::main]
 async fn main() {
@@ -219,7 +205,7 @@ async fn main() {
         data: serde_json::Value,
     }
 
-    let  btc_board = Arc::<Mutex::<DepthData>>::new(Mutex::new(DepthData::new()));
+    let btc_board = Arc::<Mutex<DepthData>>::new(Mutex::new(DepthData::new()));
     let btc_board_clone = Arc::clone(&btc_board);
 
     let closure = move |message: serde_json::Value| {
@@ -237,8 +223,6 @@ async fn main() {
             board.insert_diff(&depth_data);
 
             log::debug!("{:?}", depth_data);
-
-
         } else if sio_message.room_name.starts_with("depth_whole") {
             log::debug!("whole");
             let depth_data: DepthWhole = serde_json::from_value(sio_message.message.data)
@@ -246,7 +230,6 @@ async fn main() {
             log::debug!("{:?}", depth_data);
             //log::debug!("{:?}", depth_data);
             board.update_whole(depth_data);
-
         } else {
             log::debug!("unknown room name: {}", sio_message.room_name);
         }
@@ -254,7 +237,6 @@ async fn main() {
         if sio_message.room_name.starts_with("depth") && board.is_complete() {
             //log::debug!("{}", board);
         }
-
     };
 
     log::debug!("start websocket connection");

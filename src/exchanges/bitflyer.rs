@@ -18,8 +18,10 @@ pub type BitFlyerRequestResult<T> = Result<T, BitFlyerRequestError>;
 pub type BitFlyerRequestError = RequestError<&'static str, BitFlyerHandlerError>;
 
 /// Options that can be set when creating handlers
+#[derive(Default)]
 pub enum BitFlyerOption {
     /// [Default] variant, does nothing
+    #[default]
     Default,
     /// API key
     Key(String),
@@ -414,10 +416,4 @@ impl<H: FnMut(BitFlyerChannelMessage) + Send + 'static> WebSocketOption<H> for B
 
 impl HandlerOption for BitFlyerOption {
     type Options = BitFlyerOptions;
-}
-
-impl Default for BitFlyerOption {
-    fn default() -> Self {
-        Self::Default
-    }
 }

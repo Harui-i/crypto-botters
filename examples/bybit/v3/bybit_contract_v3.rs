@@ -1,7 +1,10 @@
-use std::env;
+use crypto_botters::{
+    bybit::{BybitHttpAuth, BybitOption},
+    Client,
+};
 use log::LevelFilter;
 use serde_json::json;
-use crypto_botters::{Client, bybit::{BybitOption, BybitHttpAuth}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -15,10 +18,13 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
     client.update_default_option(BybitOption::RecvWindow(6000));
 
-    let cancel_all: serde_json::Value = client.post(
-        "/contract/v3/private/order/cancel-all",
-        Some(json!({"symbol": "BTCUSDT"})),
-        [BybitOption::HttpAuth(BybitHttpAuth::V3AndAbove)],
-    ).await.expect("failed to cancel orders");
+    let cancel_all: serde_json::Value = client
+        .post(
+            "/contract/v3/private/order/cancel-all",
+            Some(json!({"symbol": "BTCUSDT"})),
+            [BybitOption::HttpAuth(BybitHttpAuth::V3AndAbove)],
+        )
+        .await
+        .expect("failed to cancel orders");
     println!("Cancel all result:\n{}", cancel_all);
 }

@@ -82,7 +82,7 @@ async fn main() {
     for _ in 0..10 {
         tokio::time::sleep(Duration::from_secs(15)).await;
     }
-    
+
     // close the connection
     drop(connection);
 

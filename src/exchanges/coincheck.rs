@@ -17,8 +17,10 @@ pub type CoincheckRequestResult<T> = Result<T, CoincheckRequestError>;
 pub type CoincheckRequestError = RequestError<&'static str, CoincheckHandlerError>;
 
 /// Options that can be set when creating handlers
+#[derive(Default)]
 pub enum CoincheckOption {
     /// [Default] variant, does nothing
+    #[default]
     Default,
     /// API key
     Key(String),
@@ -325,10 +327,4 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketOption<H> for Coinch
 
 impl HandlerOption for CoincheckOption {
     type Options = CoincheckOptions;
-}
-
-impl Default for CoincheckOption {
-    fn default() -> Self {
-        Self::Default
-    }
 }

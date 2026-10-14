@@ -1,4 +1,7 @@
-use crypto_botters::{bitbank::{BitbankHttpUrl, BitbankOption}, Client};
+use crypto_botters::{
+    bitbank::{BitbankHttpUrl, BitbankOption},
+    Client,
+};
 use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::Deserialize;
@@ -9,22 +12,19 @@ async fn main() {
         .filter_level(LevelFilter::Debug)
         .init();
 
-
     let public = BitbankHttpUrl::Public;
     let mut client = Client::new();
 
     // change bitbank's url to public one.
     client.update_default_option(BitbankOption::HttpUrl(public));
 
-
     #[allow(dead_code)]
     #[derive(Deserialize, Debug)]
     struct Ticker {
         success: i32,
         data: TickerData,
-
     }
-    
+
     #[allow(dead_code)]
     #[derive(Deserialize, Debug)]
     struct TickerData {
@@ -49,10 +49,7 @@ async fn main() {
     // access https://public.bitbank.cc/btc_jpy/ticker
 
     let ticker: Ticker = client
-        .get_no_query(
-            "/btc_jpy/ticker",
-            [BitbankOption::Default],
-        )
+        .get_no_query("/btc_jpy/ticker", [BitbankOption::Default])
         .await
         .expect("failed to get ticker");
 

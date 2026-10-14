@@ -1,10 +1,9 @@
 use std::env;
 
 use crypto_botters::{
-    bitbank::{BitbankHandleError, BitbankHttpUrl, BitbankOption},
+    bitbank::{BitbankHttpUrl, BitbankOption},
     Client,
 };
-use generic_api_client::http::RequestError;
 
 #[tokio::main]
 async fn main() {
@@ -29,26 +28,6 @@ async fn main() {
         .unwrap();
     println!("Assets: {:?}", res);
 
-    // place limit order 0.001BTC @ 10 BTC/JPY
-
-    let res2: serde_json::Value = client
-        .post(
-            "/user/spot/order",
-            Some(&serde_json::json!({
-              "pair":"btc_jpy",
-              "amount":"0.001",
-              "price":"10",
-              "side":"buy",
-              "type":"limit",
-              "post_only":true,
-            })),
-            [BitbankOption::Default],
-        )
-        .await
-        .unwrap();
-
-    println!("Order result: {:?}", res2);
-
     // fetch active orders
     let res3: serde_json::Value = client
         .get(
@@ -60,47 +39,4 @@ async fn main() {
         .unwrap();
 
     println!("Active orders: {:?}", res3);
-
-
-    // this code will fail because it lacks `price` field. 
-    let res4: Result<serde_json::Value, generic_api_client::http::RequestError<&str, crypto_botters::bitbank::BitbankHandleError>>  = client
-        .post(
-            "/user/spot/order",
-            Some(&serde_json::json!({
-              "pair":"btc_jpy",
-              "amount":"0.001",
-              "side":"buy",
-              "type":"limit",
-              "post_only":true,
-            })),
-            [BitbankOption::Default],
-        )
-        .await;
-        
-    
-    assert!(matches!(res4, Err(RequestError::ResponseHandleError(BitbankHandleError::MissingOrderPrice(_)))));
-    println!("Order result: {:?}", res4);
-    
-    
-    // intentionally cause rate limit error
-    for _ in 0..10 {
-        let res5: serde_json::Value = client
-        .post(
-            "/user/spot/order",
-            Some(&serde_json::json!({
-              "pair":"btc_jpy",
-              "amount":"0.001",
-              "price":"10",
-              "side":"buy",
-              "type":"limit",
-              "post_only":true,
-            })),
-            [BitbankOption::Default],
-        )
-        .await
-        .unwrap();
-
-        println!("res5: {:?}", res5);
-    }
-
 }

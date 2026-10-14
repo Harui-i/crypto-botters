@@ -1,9 +1,9 @@
+use crypto_botters::{
+    binance::{BinanceOption, BinanceRequestResult},
+    Client,
+};
 use log::LevelFilter;
 use serde_json::json;
-use crypto_botters::{
-    Client,
-    binance::{BinanceOption, BinanceRequestResult},
-};
 
 struct Api {
     client: Client,
@@ -17,11 +17,13 @@ impl Api {
     }
 
     async fn get_orderbook(&self) -> BinanceRequestResult<serde_json::Value> {
-        self.client.get(
-            "https://api.binance.com/api/v3/ticker/bookTicker",
-            Some(&json!({ "symbol": "BTCUSDT" })),
-            [BinanceOption::Default],
-        ).await
+        self.client
+            .get(
+                "https://api.binance.com/api/v3/ticker/bookTicker",
+                Some(&json!({ "symbol": "BTCUSDT" })),
+                [BinanceOption::Default],
+            )
+            .await
     }
 }
 

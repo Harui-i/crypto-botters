@@ -1,11 +1,8 @@
+use crypto_botters::{bitflyer::BitFlyerOption, Client};
 use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crypto_botters::{
-    Client,
-    bitflyer::{BitFlyerOption},
-};
 
 #[tokio::main]
 async fn main() {
@@ -35,18 +32,27 @@ async fn main() {
         sell_child_order_acceptance_id: String,
     }
 
-    let executions: Vec<Execution> = client.get(
-        "/v1/executions",
-        Some(&ExecutionsParams { product_code: "FX_BTC_JPY", count: 10 }),
-        [BitFlyerOption::Default],
-    ).await.expect("failed to get executions");
+    let executions: Vec<Execution> = client
+        .get(
+            "/v1/executions",
+            Some(&ExecutionsParams {
+                product_code: "FX_BTC_JPY",
+                count: 10,
+            }),
+            [BitFlyerOption::Default],
+        )
+        .await
+        .expect("failed to get executions");
     println!("BTC executions:\n{:?}", executions);
 
     // not typed
-    let orderbook: serde_json::Value = client.get(
-        "/v1/board",
-        Some(&json!({ "product_code": "FX_BTC_JPY" })),
-        [BitFlyerOption::Default],
-    ).await.expect("failed get orderbook");
+    let orderbook: serde_json::Value = client
+        .get(
+            "/v1/board",
+            Some(&json!({ "product_code": "FX_BTC_JPY" })),
+            [BitFlyerOption::Default],
+        )
+        .await
+        .expect("failed get orderbook");
     println!("BTC mid price:\n{:?}", orderbook["mid_price"]);
 }

@@ -1,7 +1,34 @@
 # Changelog
 
-## Unreleased
-- [full diff on GitHub](https://github.com/negi-grass/crypto-botters/compare/v0.6.0...main)
+## 0.7.0 (2026-10-14)
+
+First release of `crypto-botters-bitbank`, a fork of
+[negi-grass/crypto-botters](https://github.com/negi-grass/crypto-botters) v0.6.0.
+The entries below v0.7.0 describe upstream releases.
+
+### Added
+- bitbank public/private REST APIs and public Socket.IO WebSocket subscriptions.
+- bitbank examples for REST, trades, and order books.
+- Offline regression tests for signing, typed API errors, malformed frames, and resubscription.
+- Release checks for all exchanges, bitbank alone, and each TLS backend.
+
+### Changed
+- (BREAKING) Binance, bitFlyer, Bybit, and Coincheck WebSocket handler types now take
+  a callback type parameter instead of storing a boxed callback. Code that names
+  these types must specify the callback type (for example `BinanceWebSocketHandler<H>`)
+  or let Rust infer it. Calls to `Client::websocket` keep the same form.
+  This change is based on [richwomanbtc's implementation](https://github.com/richwomanbtc/crypto-botters/commit/0e1feb202527e4b7ee89138ca448bb014f054f61).
+- Package renamed to `crypto-botters-bitbank`; Rust library name stays `crypto_botters`.
+- Use the published `generic-api-client` 0.3 dependency without a local path override.
+- The private REST example only reads assets and active orders.
+
+### Fixed
+- Avoid panics on empty, truncated, or unexpected WebSocket frames.
+- Preserve Engine.IO ping payloads and JSON-escape subscription channel names.
+- Detect API errors before deserializing the caller's successful response type.
+- Sign requests according to the HTTP method, including POST without a body.
+- Correct the bitbank rate-limit error spelling to `RequestLimitExceeded`.
+
 
 ## 0.6.0 (2023-12-07)
 - [crates.io](https://crates.io/crates/crypto-botters/0.6.0)

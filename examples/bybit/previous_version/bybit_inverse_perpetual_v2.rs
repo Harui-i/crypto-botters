@@ -1,6 +1,9 @@
-use std::env;
+use crypto_botters::{
+    bybit::{BybitHttpAuth, BybitOption},
+    Client,
+};
 use log::LevelFilter;
-use crypto_botters::{Client, bybit::{BybitOption, BybitHttpAuth}};
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -14,17 +17,23 @@ async fn main() {
     client.update_default_option(BybitOption::Secret(secret));
     client.update_default_option(BybitOption::RecvWindow(6000));
 
-    let open_interest: serde_json::Value = client.get(
-        "/v2/public/open-interest",
-        Some(&[("symbol", "BTCUSD"), ("period", "1d"), ("limit", "3")]),
-        [BybitOption::HttpAuth(BybitHttpAuth::None)],
-    ).await.expect("failed to cancel orders");
+    let open_interest: serde_json::Value = client
+        .get(
+            "/v2/public/open-interest",
+            Some(&[("symbol", "BTCUSD"), ("period", "1d"), ("limit", "3")]),
+            [BybitOption::HttpAuth(BybitHttpAuth::None)],
+        )
+        .await
+        .expect("failed to cancel orders");
     println!("Open interest:\n{}", open_interest);
 
-    let positions: serde_json::Value = client.get(
-        "/v2/private/position/list",
-        Some(&[("symbol", "BTCUSD")]),
-        [BybitOption::HttpAuth(BybitHttpAuth::BelowV3)],
-    ).await.expect("failed to get positions");
+    let positions: serde_json::Value = client
+        .get(
+            "/v2/private/position/list",
+            Some(&[("symbol", "BTCUSD")]),
+            [BybitOption::HttpAuth(BybitHttpAuth::BelowV3)],
+        )
+        .await
+        .expect("failed to get positions");
     println!("Positions:\n{}", positions);
 }

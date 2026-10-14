@@ -1,8 +1,11 @@
-# crypto-botters
-[![](https://img.shields.io/crates/v/crypto-botters)](https://crates.io/crates/crypto-botters)
-[![](https://docs.rs/crypto-botters/badge.svg)](https://docs.rs/crypto-botters)
-[![](https://github.com/negi-grass/crypto-botters/actions/workflows/clippy.yml/badge.svg)](https://github.com/negi-grass/crypto-botters/actions/workflows/clippy.yml)
-[![](https://img.shields.io/github/license/negi-grass/crypto-botters)](https://github.com/negi-grass/crypto-botters/blob/main/LICENSE)
+# crypto-botters-bitbank
+
+A fork of [negi-grass/crypto-botters](https://github.com/negi-grass/crypto-botters), adding bitbank public/private REST and public WebSocket support. This fork is maintained by [Harui-i](https://github.com/Harui-i) and is published separately from the upstream crate.
+
+[![](https://img.shields.io/crates/v/crypto-botters-bitbank)](https://crates.io/crates/crypto-botters-bitbank)
+[![](https://docs.rs/crypto-botters-bitbank/badge.svg)](https://docs.rs/crypto-botters-bitbank)
+[![](https://github.com/Harui-i/crypto-botters/actions/workflows/clippy.yml/badge.svg)](https://github.com/Harui-i/crypto-botters/actions/workflows/clippy.yml)
+[![](https://img.shields.io/github/license/Harui-i/crypto-botters)](https://github.com/Harui-i/crypto-botters/blob/main/LICENSE)
 
 [日本語は下にあります](#%E6%97%A5%E6%9C%AC%E8%AA%9E)
 
@@ -18,20 +21,25 @@ The following Exchanges are currently supported.
 
 | Exchange                           | Official API document                                           | Example usages of this library                                                        |
 |------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| [Binance](https://www.binance.com) | [API document](https://binance-docs.github.io/apidocs/spot/en/) | [Examples](https://github.com/negi-grass/crypto-botters/tree/main/examples/binance)   |
-| [bitFlyer](https://bitflyer.com)   | [API document](https://lightning.bitflyer.com/docs)             | [Examples](https://github.com/negi-grass/crypto-botters/tree/main/examples/bitflyer)  |
-| [Bybit](https://www.bybit.com)     | [API document](https://bybit-exchange.github.io/docs/)          | [Examples](https://github.com/negi-grass/crypto-botters/tree/main/examples/bybit)     |
-| [Coincheck](https://coincheck.com) | [API document](https://coincheck.com/documents/exchange/api)    | [Examples](https://github.com/negi-grass/crypto-botters/tree/main/examples/coincheck) |
+| [Binance](https://www.binance.com) | [API document](https://binance-docs.github.io/apidocs/spot/en/) | [Examples](https://github.com/Harui-i/crypto-botters/tree/main/examples/binance)   |
+| [bitbank](https://bitbank.cc) | [API document](https://github.com/bitbankinc/bitbank-api-docs) | [Examples](https://github.com/Harui-i/crypto-botters/tree/main/examples/bitbank) |
+| [bitFlyer](https://bitflyer.com)   | [API document](https://lightning.bitflyer.com/docs)             | [Examples](https://github.com/Harui-i/crypto-botters/tree/main/examples/bitflyer)  |
+| [Bybit](https://www.bybit.com)     | [API document](https://bybit-exchange.github.io/docs/)          | [Examples](https://github.com/Harui-i/crypto-botters/tree/main/examples/bybit)     |
+| [Coincheck](https://coincheck.com) | [API document](https://coincheck.com/documents/exchange/api)    | [Examples](https://github.com/Harui-i/crypto-botters/tree/main/examples/coincheck) |
 
 ## Usage
-More than 20 examples can be found in the [examples directory](https://github.com/negi-grass/crypto-botters/tree/main/examples).
+More than 20 examples can be found in the [examples directory](https://github.com/Harui-i/crypto-botters/tree/main/examples).
 
 Cargo.toml:
 ```
 [dependencies]
-crypto-botters = { version = "0.6", features = ["binance", "bitflyer", "bybit", "coincheck"] }
+crypto-botters = { package = "crypto-botters-bitbank", version = "0.7", features = ["bitbank"] }
 ```
-Enable the features for the exchanges that you use.
+Enable the features for the exchanges that you use. The library name remains `crypto_botters`, so existing Rust imports can be retained.
+
+The bitbank private REST example only reads assets and active orders. It requires `BITBANK_API_KEY` and `BITBANK_API_SECRET`; it does not place orders.
+
+Version 0.7 makes the WebSocket handler types generic over the callback. See [CHANGELOG.md](CHANGELOG.md) for migration notes.
 
 ## Example
 ### HTTP
@@ -107,10 +115,13 @@ The `Client::websocket()` method returns a `WebSocketConnection`. Using this, yo
 request a reconnection, or close the connection.
 
 ## 日本語
+
+[negi-grass/crypto-botters](https://github.com/negi-grass/crypto-botters) にbitbankの公開・認証付きREST APIと公開WebSocket対応を追加したforkです。Harui-iが保守し、上流とは別のcrateとして公開します。
+
 これは仮想通貨取引所のAPIと通信するためのRustライブラリです。
 
-- [crates.io](https://crates.io/crates/crypto-botters)
-- [docs.rs](https://docs.rs/crypto-botters)
+- [crates.io](https://crates.io/crates/crypto-botters-bitbank)
+- [docs.rs](https://docs.rs/crypto-botters-bitbank)
 
 特徴:
 - 非同期
@@ -122,18 +133,19 @@ request a reconnection, or close the connection.
 
 | 取引所名                               | 公式APIドキュメント                                                  | 本ライブラリ使用例                                                                        |
 |------------------------------------|--------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [Binance](https://www.binance.com) | [APIドキュメント](https://binance-docs.github.io/apidocs/spot/en/) | [使用例](https://github.com/negi-grass/crypto-botters/tree/main/examples/binance)   |
-| [bitFlyer](https://bitflyer.com)   | [APIドキュメント](https://lightning.bitflyer.com/docs)             | [使用例](https://github.com/negi-grass/crypto-botters/tree/main/examples/bitflyer)  |
-| [Bybit](https://www.bybit.com)     | [APIドキュメント](https://bybit-exchange.github.io/docs/)          | [使用例](https://github.com/negi-grass/crypto-botters/tree/main/examples/bybit)     |
-| [Coincheck](https://coincheck.com) | [APIドキュメント](https://coincheck.com/ja/documents/exchange/api) | [使用例](https://github.com/negi-grass/crypto-botters/tree/main/examples/coincheck) |
+| [Binance](https://www.binance.com) | [APIドキュメント](https://binance-docs.github.io/apidocs/spot/en/) | [使用例](https://github.com/Harui-i/crypto-botters/tree/main/examples/binance)   |
+| [bitbank](https://bitbank.cc) | [APIドキュメント](https://github.com/bitbankinc/bitbank-api-docs) | [使用例](https://github.com/Harui-i/crypto-botters/tree/main/examples/bitbank) |
+| [bitFlyer](https://bitflyer.com)   | [APIドキュメント](https://lightning.bitflyer.com/docs)             | [使用例](https://github.com/Harui-i/crypto-botters/tree/main/examples/bitflyer)  |
+| [Bybit](https://www.bybit.com)     | [APIドキュメント](https://bybit-exchange.github.io/docs/)          | [使用例](https://github.com/Harui-i/crypto-botters/tree/main/examples/bybit)     |
+| [Coincheck](https://coincheck.com) | [APIドキュメント](https://coincheck.com/ja/documents/exchange/api) | [使用例](https://github.com/Harui-i/crypto-botters/tree/main/examples/coincheck) |
 
 ## 使い方
-[examples ディレクトリ](https://github.com/negi-grass/crypto-botters/tree/main/examples) にサンプルが20以上あります。
+[examples ディレクトリ](https://github.com/Harui-i/crypto-botters/tree/main/examples) にサンプルが20以上あります。
 
 Cargo.toml:
 ```
 [dependencies]
-crypto-botters = { version = "0.6", features = ["binance", "bitflyer", "bybit", "coincheck"] }
+crypto-botters = { package = "crypto-botters-bitbank", version = "0.7", features = ["bitbank"] }
 ```
 使いたい取引所のfeatureを有効化してください。
 
@@ -208,4 +220,8 @@ async fn main() {
 `Client::websocket()`メソッドは`WebSocketConnection`型を返します。これに対し、メッセージを送信する、再接続を要求する、接続を切断するなどの処理が行なえます。
 
 ## その他
-開発者：[@negi_grass](https://twitter.com/negi_grass)
+上流の開発者：[@negi_grass](https://twitter.com/negi_grass)
+
+forkの保守者：[Harui-i](https://github.com/Harui-i)
+
+公開手順：[RELEASING.md](RELEASING.md)
