@@ -103,7 +103,7 @@ pub enum BitbankHandleError {
     InvalidAccessSignature(serde_json::Value),   // 20005
     MfaFailed(serde_json::Value),                // 20011
     SmsVerificationFailed(serde_json::Value),    // 20014
-    PleaseLogin(serde_json::Value),              // 20018
+    PleaseLogin(serde_json::Value),              // 20018, 20019
     MissingOtpCode(serde_json::Value),           // 20023
     MissingSmsCode(serde_json::Value),           // 20024
     MissingOtpAndSmsCode(serde_json::Value),     // 20025
@@ -188,6 +188,10 @@ pub enum BitbankHandleError {
     InvalidOriginatorSubstantialControllerName(serde_json::Value), // 40160
     InvalidBeneficiarySubstantialControllerName(serde_json::Value), // 40163
 
+    InvalidPositionSide(serde_json::Value), // 40164
+    MarginTradingNotSupportedForPair(serde_json::Value), // 40167
+    StopEntryOrderNotAllowed(serde_json::Value), // 40202
+
     AccountIsRestricted(serde_json::Value),  // 50003
     AccountIsProvisional(serde_json::Value), // 50004
     AccountIsBlocked(serde_json::Value),     // 50005, 50006
@@ -217,6 +221,21 @@ pub enum BitbankHandleError {
         serde_json::Value,
     ), // 50054
 
+    MarginTradingReviewIncomplete(serde_json::Value), // 50058
+    MarginEntryOrderTemporarilyRestricted(serde_json::Value), // 50059, 50060
+    MarginEntryAmountExceeded(serde_json::Value),     // 50061
+    PositionQuantityExceeded(serde_json::Value),      // 50062
+    JpyWithdrawalUnavailable(serde_json::Value),      // 50073
+    CryptoWithdrawalUnavailable(serde_json::Value),   // 50074
+    SpotBuyOrderUnavailable(serde_json::Value),       // 50075
+    SpotSellOrderUnavailable(serde_json::Value),      // 50076
+    MarginEntrySellOrderUnavailable(serde_json::Value), // 50081
+    MarginSettlementSellOrderUnavailable(serde_json::Value), // 50082
+    MarginEntryBuyOrderUnavailable(serde_json::Value), // 50083
+    MarginSettlementBuyOrderUnavailable(serde_json::Value), // 50084
+    WithdrawalUnavailableDueToSettlementLoss(serde_json::Value), // 50086
+    WithdrawalUnavailableDueToReceivables(serde_json::Value), // 50088
+
     InsufficientAmount(serde_json::Value), // 60001
     MarketBuyOrderQuantityHasExceededTheUpperLimit(serde_json::Value), // 60002
     OrderQuantityHasExceededTheLimit(serde_json::Value), // 60003
@@ -226,6 +245,10 @@ pub enum BitbankHandleError {
     TooManySimultaneousOrders(serde_json::Value), // 60011
     TriggerPriceHasExceededTheUpperLimit(serde_json::Value), // 60016
     WithdrawalAmountHasExceededTheUpperLimit(serde_json::Value), // 60017
+
+    ImmediatelyTriggeredPriceNotAllowed(serde_json::Value), // 60018
+    TakeProfitOrStopLossSideMustSettlePosition(serde_json::Value), // 60019
+    SingleWithdrawalAmountExceeded(serde_json::Value),      // 60020
 
     SystemErrorStopUpdateRequest(serde_json::Value), // 70001, 70002, 70003, 70012
     OrderIsRestrictedDuringSuspensionOfTransactions(serde_json::Value), // 70004
@@ -244,6 +267,9 @@ pub enum BitbankHandleError {
     LimitOrderPriceIsOverTheThreshold(serde_json::Value), // 70021
     StopLimitOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70022
     StopOrderHasTemporarilyBeenRestricted(serde_json::Value), // 70023
+    LongEntryOrderSuspended(serde_json::Value),      // 70024
+    ShortEntryOrderSuspended(serde_json::Value),     // 70025
+    OrderAcceptanceTemporarilyRestricted(serde_json::Value), // 70026
 }
 
 /// A `struct` that implements [RequestHandler]
@@ -384,7 +410,7 @@ where
                 20005 => BitbankHandleError::InvalidAccessSignature(res_val),
                 20011 => BitbankHandleError::MfaFailed(res_val),
                 20014 => BitbankHandleError::SmsVerificationFailed(res_val),
-                20018 => BitbankHandleError::PleaseLogin(res_val),
+                20018 | 20019 => BitbankHandleError::PleaseLogin(res_val),
                 20023 => BitbankHandleError::MissingOtpCode(res_val),
                 20024 => BitbankHandleError::MissingSmsCode(res_val),
                 20025 => BitbankHandleError::MissingOtpAndSmsCode(res_val),
@@ -466,6 +492,9 @@ where
                 40159 => BitbankHandleError::InvalidOriginatorBuilding(res_val),
                 40160 => BitbankHandleError::InvalidOriginatorSubstantialControllerName(res_val),
                 40163 => BitbankHandleError::InvalidBeneficiarySubstantialControllerName(res_val),
+                40164 => BitbankHandleError::InvalidPositionSide(res_val),
+                40167 => BitbankHandleError::MarginTradingNotSupportedForPair(res_val),
+                40202 => BitbankHandleError::StopEntryOrderNotAllowed(res_val),
                 50003 => BitbankHandleError::AccountIsRestricted(res_val),
                 50004 => BitbankHandleError::AccountIsProvisional(res_val),
                 50005 | 50006 => BitbankHandleError::AccountIsBlocked(res_val),
@@ -492,6 +521,21 @@ where
                 50052 => BitbankHandleError::OriginatorRequiresAdditionalEntries(res_val),
                 50053 => BitbankHandleError::CannotEditOriginatorUnderReview(res_val),
                 50054 => BitbankHandleError::CannotWithdrawBecauseInformationRegistrationForUnreflectedDepositsHasNotBeCompleted(res_val),
+                50058 => BitbankHandleError::MarginTradingReviewIncomplete(res_val),
+                50059 => BitbankHandleError::MarginEntryOrderTemporarilyRestricted(res_val),
+                50060 => BitbankHandleError::MarginEntryOrderTemporarilyRestricted(res_val),
+                50061 => BitbankHandleError::MarginEntryAmountExceeded(res_val),
+                50062 => BitbankHandleError::PositionQuantityExceeded(res_val),
+                50073 => BitbankHandleError::JpyWithdrawalUnavailable(res_val),
+                50074 => BitbankHandleError::CryptoWithdrawalUnavailable(res_val),
+                50075 => BitbankHandleError::SpotBuyOrderUnavailable(res_val),
+                50076 => BitbankHandleError::SpotSellOrderUnavailable(res_val),
+                50081 => BitbankHandleError::MarginEntrySellOrderUnavailable(res_val),
+                50082 => BitbankHandleError::MarginSettlementSellOrderUnavailable(res_val),
+                50083 => BitbankHandleError::MarginEntryBuyOrderUnavailable(res_val),
+                50084 => BitbankHandleError::MarginSettlementBuyOrderUnavailable(res_val),
+                50086 => BitbankHandleError::WithdrawalUnavailableDueToSettlementLoss(res_val),
+                50088 => BitbankHandleError::WithdrawalUnavailableDueToReceivables(res_val),
                 60001 => BitbankHandleError::InsufficientAmount(res_val),
                 60002 => BitbankHandleError::MarketBuyOrderQuantityHasExceededTheUpperLimit(res_val),
                 60003 => BitbankHandleError::OrderQuantityHasExceededTheLimit(res_val),
@@ -501,6 +545,9 @@ where
                 60011 => BitbankHandleError::TooManySimultaneousOrders(res_val),
                 60016 => BitbankHandleError::TriggerPriceHasExceededTheUpperLimit(res_val),
                 60017 => BitbankHandleError::WithdrawalAmountHasExceededTheUpperLimit(res_val),
+                60018 => BitbankHandleError::ImmediatelyTriggeredPriceNotAllowed(res_val),
+                60019 => BitbankHandleError::TakeProfitOrStopLossSideMustSettlePosition(res_val),
+                60020 => BitbankHandleError::SingleWithdrawalAmountExceeded(res_val),
                 70001 | 70002 | 70003 | 70012 => BitbankHandleError::SystemErrorStopUpdateRequest(res_val),
                 70004 => BitbankHandleError::OrderIsRestrictedDuringSuspensionOfTransactions(res_val),
                 70005 => BitbankHandleError::BuyOrderHasTemporarilyBeenRestricted(res_val),
@@ -518,6 +565,9 @@ where
                 70021 => BitbankHandleError::LimitOrderPriceIsOverTheThreshold(res_val),
                 70022 => BitbankHandleError::StopLimitOrderHasTemporarilyBeenRestricted(res_val),
                 70023 => BitbankHandleError::StopOrderHasTemporarilyBeenRestricted(res_val),
+                70024 => BitbankHandleError::LongEntryOrderSuspended(res_val),
+                70025 => BitbankHandleError::ShortEntryOrderSuspended(res_val),
+                70026 => BitbankHandleError::OrderAcceptanceTemporarilyRestricted(res_val),
                 _ => BitbankHandleError::ApiError(res_val), // Unknown error code
             };
             return Err(error);
@@ -802,6 +852,46 @@ mod tests {
     #[derive(Debug, Deserialize)]
     struct Price {
         last: String,
+    }
+
+    #[test]
+    fn newly_documented_error_codes_preserve_response() {
+        macro_rules! check {
+            ($code:literal, $variant:ident) => {
+                for status in [StatusCode::OK, StatusCode::BAD_REQUEST] {
+                    let body = json!({"success":0,"data":{"code":$code,"detail":"kept"}});
+                    match response::<Success>(status, &body.to_string()) {
+                        Err(BitbankHandleError::$variant(value)) => assert_eq!(value, body),
+                        other => panic!("code {}: {:?}", $code, other),
+                    }
+                }
+            };
+        }
+        check!(20019, PleaseLogin);
+        check!(40164, InvalidPositionSide);
+        check!(40167, MarginTradingNotSupportedForPair);
+        check!(40202, StopEntryOrderNotAllowed);
+        check!(50058, MarginTradingReviewIncomplete);
+        check!(50059, MarginEntryOrderTemporarilyRestricted);
+        check!(50060, MarginEntryOrderTemporarilyRestricted);
+        check!(50061, MarginEntryAmountExceeded);
+        check!(50062, PositionQuantityExceeded);
+        check!(50073, JpyWithdrawalUnavailable);
+        check!(50074, CryptoWithdrawalUnavailable);
+        check!(50075, SpotBuyOrderUnavailable);
+        check!(50076, SpotSellOrderUnavailable);
+        check!(50081, MarginEntrySellOrderUnavailable);
+        check!(50082, MarginSettlementSellOrderUnavailable);
+        check!(50083, MarginEntryBuyOrderUnavailable);
+        check!(50084, MarginSettlementBuyOrderUnavailable);
+        check!(50086, WithdrawalUnavailableDueToSettlementLoss);
+        check!(50088, WithdrawalUnavailableDueToReceivables);
+        check!(60018, ImmediatelyTriggeredPriceNotAllowed);
+        check!(60019, TakeProfitOrStopLossSideMustSettlePosition);
+        check!(60020, SingleWithdrawalAmountExceeded);
+        check!(70024, LongEntryOrderSuspended);
+        check!(70025, ShortEntryOrderSuspended);
+        check!(70026, OrderAcceptanceTemporarilyRestricted);
     }
 
     #[test]
