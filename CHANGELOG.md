@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0 (2026-11-03)
+
+### Changed
+- (BREAKING) Add variants to the public `BitbankHandleError` enum, which is not
+  marked `#[non_exhaustive]`. Downstream exhaustive matches must handle the new
+  variants or include a fallback arm.
+
+### Fixed
+- Map 25 previously unrecognized official bitbank error codes to typed errors,
+  preserving the original response and error code for callers.
+- Cover each added mapping with HTTP 200/400 regression tests.
+
 ## 0.7.0 (2026-10-14)
 
 First release of `crypto-botters-bitbank`, a fork of

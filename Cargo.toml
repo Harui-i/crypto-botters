@@ -3,7 +3,7 @@ exclude = ["generic-api-client"]
 
 [package]
 name = "crypto-botters-bitbank"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["negi_grass", "Harui-i"]
 edition = "2021"
 description = "A fork of crypto-botters with bitbank REST and WebSocket API support."
