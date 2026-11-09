@@ -1,3 +1,8 @@
+# Unreleased
+
+- Bundle HTTP/WebSocket transport; replace `generic_api_client` re-export with public `http` and `websocket` modules (breaking change).
+- Emit structured tracing diagnostics; examples initialize tracing-subscriber instead of env_logger.
+
 # Changelog
 
 ## 0.8.0 (2026-11-03)

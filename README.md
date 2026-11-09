@@ -93,7 +93,7 @@ because we specified the type of `dusts`. Any type that implements `DeserializeO
 ### WebSocket
 ```rust
 use std::time::Duration;
-use log::LevelFilter;
+
 use crypto_botters::{binance::{BinanceOption, BinanceWebSocketUrl}, Client};
 
 #[tokio::main]
@@ -199,7 +199,7 @@ async fn main() {
 ### WebSocket
 ```rust
 use std::time::Duration;
-use log::LevelFilter;
+
 use crypto_botters::{binance::{BinanceOption, BinanceWebSocketUrl}, Client};
 
 #[tokio::main]
@@ -225,3 +225,30 @@ async fn main() {
 forkの保守者：[Harui-i](https://github.com/Harui-i)
 
 公開手順：[RELEASING.md](RELEASING.md)
+
+## Logging / ロギング
+
+The transport is now bundled, based on the upstream MIT-licensed
+`generic-api-client` 0.3.0. Use `crypto_botters::http` and
+`crypto_botters::websocket` instead of `crypto_botters::generic_api_client`.
+
+本体は `tracing` イベントを発行し、subscriber は初期化しません。
+利用プログラムで `tracing-subscriber` を追加して設定してください。
+examples は stderr に診断ログ、stdout に取得結果を出力します。
+
+```rust
+tracing_subscriber::fmt()
+    .with_env_filter("warn,crypto_botters=debug")
+    .with_writer(std::io::stderr)
+    .init();
+```
+
+JSON出力には `tracing-subscriber` の `json` feature と `.json()` を使います。
+examples のレベルは `RUST_LOG=warn,crypto_botters=debug` で変更できます。
+HTTPは `request_id` と `attempt`、WebSocketは `connection_id` と再接続の
+`generation` で追跡できます。IDはプロセス内で有効です。
+HTTPの `handler_ok` は既存ハンドラの戻り値を示し、注文受付や約定を保証しません。
+通信エラー時は注文結果が不明な場合があるため、利用側で照会してください。
+ログは永続的な注文台帳の代わりにはなりません。
+秘密情報や本文は診断ログに含めませんが、examples の取得結果の表示には
+残高・注文情報が含まれます。保存先の権限や保存期間は利用側で管理してください。

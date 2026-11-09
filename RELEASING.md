@@ -28,8 +28,8 @@ cargo publish --dry-run --all-features --locked
 ```
 
 CI additionally checks all exchange features with each TLS backend.
-`generic-api-client` is fetched from crates.io. The historical local copy is
-excluded from the workspace and does not need to be published for this release.
+The HTTP and WebSocket transport is included in this crate; no separate transport
+crate needs to be published.
 Examples declare required exchange features so that the packaged examples can
 be checked with the requested exchange features.
 
