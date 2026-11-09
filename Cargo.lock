@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "crypto-botters-bitbank"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "bytes",
  "futures-util",
