@@ -1,7 +1,7 @@
 // A module for communicating with the [Binance API](https://binance-docs.github.io/apidocs/spot/en/).
 
 use crate::traits::*;
-use generic_api_client::{http::*, websocket::*};
+use crate::{http::*, websocket::*};
 use hmac::{Hmac, Mac};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha2::Sha256;
@@ -229,9 +229,26 @@ where
         headers: HeaderMap,
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
+        if !status.is_success() {
+            let code = serde_json::from_slice::<serde_json::Value>(&response_body)
+                .ok()
+                .and_then(|value| {
+                    value["code"]
+                        .as_i64()
+                        .or_else(|| value["retCode"].as_i64())
+                        .or_else(|| value["ret_code"].as_i64())
+                        .or_else(|| value["status"].as_i64())
+                });
+            tracing::warn!(
+                exchange = "binance",
+                event = "api_response_rejected",
+                http_status = status.as_u16(),
+                api_code = code
+            );
+        }
         if status.is_success() {
-            serde_json::from_slice(&response_body).map_err(|error| {
-                log::debug!("Failed to parse response due to an error: {}", error);
+            serde_json::from_slice(&response_body).map_err(|_error| {
+                tracing::warn!(exchange = "binance", event = "response_parse_failed");
                 BinanceHandlerError::ParseError
             })
         } else {
@@ -242,11 +259,11 @@ where
                         if let Ok(retry_after) = u32::from_str(string) {
                             Some(retry_after)
                         } else {
-                            log::debug!("Invalid number in Retry-After header");
+                            tracing::debug!("Invalid number in Retry-After header");
                             None
                         }
                     } else {
-                        log::debug!("Non-ASCII character in Retry-After header");
+                        tracing::debug!("Non-ASCII character in Retry-After header");
                         None
                     }
                 } else {
@@ -257,8 +274,8 @@ where
 
             let error = match serde_json::from_slice(&response_body) {
                 Ok(parsed_error) => BinanceHandlerError::ApiError(parsed_error),
-                Err(error) => {
-                    log::debug!("Failed to parse error response due to an error: {}", error);
+                Err(_error) => {
+                    tracing::warn!(exchange = "binance", event = "error_response_parse_failed");
                     BinanceHandlerError::ParseError
                 }
             };
@@ -282,10 +299,10 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BinanceW
                 if let Ok(message) = serde_json::from_str(&message) {
                     (self.message_handler)(message);
                 } else {
-                    log::debug!("Invalid JSON message received");
+                    tracing::warn!("Invalid JSON message received");
                 }
             }
-            WebSocketMessage::Binary(_) => log::debug!("Unexpected binary message received"),
+            WebSocketMessage::Binary(_) => tracing::debug!("Unexpected binary message received"),
             WebSocketMessage::Ping(_) | WebSocketMessage::Pong(_) => (),
         }
         vec![]

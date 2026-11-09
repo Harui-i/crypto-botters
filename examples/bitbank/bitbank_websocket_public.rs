@@ -1,13 +1,16 @@
 use crypto_botters::{bitbank::BitbankOption, Client};
-use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::Deserialize;
 use std::time::Duration;
 
 #[tokio::main]
 async fn main() {
-    env_logger::builder()
-        .filter_level(LevelFilter::Debug)
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "warn,crypto_botters=info".into()),
+        )
+        .with_writer(std::io::stderr)
         .init();
     let client = Client::new();
 
@@ -43,7 +46,7 @@ async fn main() {
     }
 
     let closure = |message: serde_json::Value| {
-        //log::debug!("plane message: {:?}", message);
+        //tracing::debug!("plane message: {:?}", message);
         let message_data: SocketioMessageData =
             serde_json::from_value(message[1].clone()).expect("failed to parse message data");
         let room_name = message_data.room_name;
@@ -54,11 +57,11 @@ async fn main() {
                     .expect("failed to parse transaction message");
 
             for transaction in transaction_msg.transactions {
-                log::debug!("{:?}", transaction);
+                tracing::debug!("{:?}", transaction);
             }
         } else {
             let websocket_message = message_data.message.data;
-            log::debug!("message from `{}`: {:?}", room_name, websocket_message);
+            tracing::debug!("message from `{}`: {:?}", room_name, websocket_message);
         }
     };
 

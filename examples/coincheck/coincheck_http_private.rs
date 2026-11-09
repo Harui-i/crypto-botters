@@ -1,12 +1,15 @@
 use crypto_botters::{coincheck::CoincheckOption, Client};
-use log::LevelFilter;
 use serde_json::json;
 use std::env;
 
 #[tokio::main]
 async fn main() {
-    env_logger::builder()
-        .filter_level(LevelFilter::Debug)
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "warn,crypto_botters=info".into()),
+        )
+        .with_writer(std::io::stderr)
         .init();
     let key = env::var("COINCHECK_API_KEY").expect("no API key found");
     let secret = env::var("COINCHECK_API_SECRET").expect("no API secret found");

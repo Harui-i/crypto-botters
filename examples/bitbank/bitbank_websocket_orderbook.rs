@@ -1,5 +1,4 @@
 use crypto_botters::{bitbank::BitbankOption, Client};
-use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::Deserialize;
 use std::fmt;
@@ -186,8 +185,12 @@ impl DepthData {
 
 #[tokio::main]
 async fn main() {
-    env_logger::builder()
-        .filter_level(LevelFilter::Debug)
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "warn,crypto_botters=info".into()),
+        )
+        .with_writer(std::io::stderr)
         .init();
 
     let client = Client::new();
@@ -215,31 +218,31 @@ async fn main() {
         let mut board = btc_board_clone.lock().unwrap();
 
         if sio_message.room_name.starts_with("depth_diff") {
-            log::debug!("diff");
+            tracing::debug!("diff");
 
             let depth_data: DepthDiff = serde_json::from_value(sio_message.message.data)
                 .expect("failed to parse (diff) depth data");
 
             board.insert_diff(&depth_data);
 
-            log::debug!("{:?}", depth_data);
+            tracing::debug!("{:?}", depth_data);
         } else if sio_message.room_name.starts_with("depth_whole") {
-            log::debug!("whole");
+            tracing::debug!("whole");
             let depth_data: DepthWhole = serde_json::from_value(sio_message.message.data)
                 .expect("failed to parse (whole) depth data");
-            log::debug!("{:?}", depth_data);
-            //log::debug!("{:?}", depth_data);
+            tracing::debug!("{:?}", depth_data);
+            //tracing::debug!("{:?}", depth_data);
             board.update_whole(depth_data);
         } else {
-            log::debug!("unknown room name: {}", sio_message.room_name);
+            tracing::debug!("unknown room name: {}", sio_message.room_name);
         }
 
         if sio_message.room_name.starts_with("depth") && board.is_complete() {
-            //log::debug!("{}", board);
+            //tracing::debug!("{}", board);
         }
     };
 
-    log::debug!("start websocket connection");
+    tracing::debug!("start websocket connection");
 
     let connection = client
         .websocket(

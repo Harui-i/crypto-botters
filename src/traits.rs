@@ -1,4 +1,4 @@
-use generic_api_client::{http, websocket};
+use crate::{http, websocket};
 use std::fmt::Debug;
 
 /// A `trait` that represents an option which can be set when creating handlers

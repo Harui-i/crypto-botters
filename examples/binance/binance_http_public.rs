@@ -2,15 +2,18 @@ use crypto_botters::{
     binance::{BinanceHttpUrl, BinanceOption},
     Client,
 };
-use log::LevelFilter;
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[tokio::main]
 async fn main() {
-    env_logger::builder()
-        .filter_level(LevelFilter::Debug)
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "warn,crypto_botters=info".into()),
+        )
+        .with_writer(std::io::stderr)
         .init();
     let mut client = Client::new();
     client.update_default_option(BinanceOption::HttpUrl(BinanceHttpUrl::Spot));

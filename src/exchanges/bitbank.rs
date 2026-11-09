@@ -3,7 +3,7 @@
 use std::{marker::PhantomData, time::SystemTime};
 
 use crate::traits::*;
-use generic_api_client::{http::*, websocket::*};
+use crate::{http::*, websocket::*};
 use header::HeaderValue;
 use hmac::{Hmac, Mac};
 use serde::{de::DeserializeOwned, Serialize};
@@ -386,12 +386,25 @@ where
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
         // API errors have a different shape from the caller's successful response type.
-        let res_val: serde_json::Value =
-            serde_json::from_slice(&response_body).map_err(|_| BitbankHandleError::ParseError)?;
+        let res_val: serde_json::Value = serde_json::from_slice(&response_body).map_err(|_| {
+            tracing::warn!(exchange = "bitbank", event = "response_parse_failed");
+            BitbankHandleError::ParseError
+        })?;
         if status == StatusCode::TOO_MANY_REQUESTS {
+            tracing::warn!(
+                exchange = "bitbank",
+                event = "api_rate_limited",
+                http_status = status.as_u16()
+            );
             return Err(BitbankHandleError::RequestLimitExceeded(res_val));
         }
         if !status.is_success() || res_val["success"].as_i64() == Some(0) {
+            tracing::warn!(
+                exchange = "bitbank",
+                event = "api_response_rejected",
+                http_status = status.as_u16(),
+                api_code = res_val["data"]["code"].as_u64()
+            );
             let Some(error_code) = res_val["data"]["code"].as_u64() else {
                 return Err(BitbankHandleError::ApiError(res_val));
             };
@@ -572,7 +585,10 @@ where
             };
             return Err(error);
         }
-        serde_json::from_slice(&response_body).map_err(|_| BitbankHandleError::ParseError)
+        serde_json::from_slice(&response_body).map_err(|_| {
+            tracing::warn!(exchange = "bitbank", event = "response_parse_failed");
+            BitbankHandleError::ParseError
+        })
     }
 }
 
@@ -603,6 +619,7 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BitbankW
             {
                 return vec![WebSocketMessage::Text("40".to_owned())];
             }
+            tracing::warn!(exchange = "bitbank", event = "ws_invalid_open_packet");
         } else if let Some(payload) = message.strip_prefix('2') {
             return vec![WebSocketMessage::Text(format!("3{payload}"))];
         } else if let Some(payload) = message.strip_prefix("40") {
@@ -611,6 +628,11 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BitbankW
                 || serde_json::from_str::<serde_json::Value>(payload)
                     .is_ok_and(|value| value.is_object())
             {
+                tracing::info!(
+                    exchange = "bitbank",
+                    event = "ws_subscription_requested",
+                    channel_count = self.options.websocket_channels.len()
+                );
                 return self
                     .options
                     .websocket_channels
@@ -627,14 +649,16 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BitbankW
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(payload) {
                 if value.is_array() {
                     (self.message_handler)(value);
+                    return vec![];
                 }
             }
+            tracing::warn!(exchange = "bitbank", event = "ws_invalid_event_packet");
         }
         vec![]
     }
 
     fn handle_close(&mut self, reconnect: bool) {
-        log::debug!(
+        tracing::debug!(
             "Bitbank WebSocket connection closed; reconnect: {}",
             reconnect
         );
@@ -1034,8 +1058,10 @@ mod tests {
                 result.unwrap();
             }
         });
-        let mut config = WebSocketConfig::default();
-        config.connect_cooldown = Duration::from_millis(10);
+        let config = WebSocketConfig {
+            connect_cooldown: Duration::from_millis(10),
+            ..Default::default()
+        };
         let options = BitbankOptions {
             websocket_url: BitbankWebSocketUrl::None,
             websocket_channels: vec!["transactions_btc_jpy".into()],

@@ -2,7 +2,7 @@
 //! For example usages, see files in the examples/ directory.
 
 use crate::traits::*;
-use generic_api_client::{
+use crate::{
     http::{header::HeaderValue, *},
     websocket::*,
 };
@@ -225,9 +225,26 @@ where
         _: HeaderMap,
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
+        if !status.is_success() {
+            let code = serde_json::from_slice::<serde_json::Value>(&response_body)
+                .ok()
+                .and_then(|value| {
+                    value["code"]
+                        .as_i64()
+                        .or_else(|| value["retCode"].as_i64())
+                        .or_else(|| value["ret_code"].as_i64())
+                        .or_else(|| value["status"].as_i64())
+                });
+            tracing::warn!(
+                exchange = "bybit",
+                event = "api_response_rejected",
+                http_status = status.as_u16(),
+                api_code = code
+            );
+        }
         if status.is_success() {
-            serde_json::from_slice(&response_body).map_err(|error| {
-                log::debug!("Failed to parse response due to an error: {}", error);
+            serde_json::from_slice(&response_body).map_err(|_error| {
+                tracing::warn!(exchange = "bybit", event = "response_parse_failed");
                 BybitHandlerError::ParseError
             })
         } else {
@@ -240,8 +257,8 @@ where
                         BybitHandlerError::ApiError(parsed)
                     }
                 }
-                Err(error) => {
-                    log::debug!("Failed to parse error response due to an error: {}", error);
+                Err(_error) => {
+                    tracing::warn!(exchange = "bybit", event = "error_response_parse_failed");
                     BybitHandlerError::ParseError
                 }
             };
@@ -480,10 +497,18 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BybitWeb
                         .to_string(),
                     )];
                 } else {
-                    log::debug!("API secret not set.");
+                    tracing::warn!(
+                        exchange = "bybit",
+                        event = "ws_auth_config_missing",
+                        field = "secret"
+                    );
                 };
             } else {
-                log::debug!("API key not set.");
+                tracing::warn!(
+                    exchange = "bybit",
+                    event = "ws_auth_config_missing",
+                    field = "key"
+                );
             };
         }
         self.message_subscribe()
@@ -495,36 +520,30 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BybitWeb
                 let message: serde_json::Value = match serde_json::from_str(&message) {
                     Ok(message) => message,
                     Err(_) => {
-                        log::debug!("Invalid JSON received");
+                        tracing::warn!("Invalid JSON received");
                         return vec![];
                     }
                 };
                 match message["op"].as_str() {
                     Some("auth") => {
                         if message["success"].as_bool() == Some(true) {
-                            log::debug!("WebSocket authentication successful");
+                            tracing::info!("WebSocket authentication successful");
                         } else {
-                            log::debug!(
-                                "WebSocket authentication unsuccessful; message: {}",
-                                message["ret_msg"]
-                            );
+                            tracing::warn!("WebSocket authentication unsuccessful");
                         }
                         return self.message_subscribe();
                     }
                     Some("subscribe") => {
                         if message["success"].as_bool() == Some(true) {
-                            log::debug!("WebSocket topics subscription successful");
+                            tracing::info!("WebSocket topics subscription successful");
                         } else {
-                            log::debug!(
-                                "WebSocket topics subscription unsuccessful; message: {}",
-                                message["ret_msg"]
-                            );
+                            tracing::warn!("WebSocket topics subscription unsuccessful");
                         }
                     }
                     _ => (self.message_handler)(message),
                 }
             }
-            WebSocketMessage::Binary(_) => log::debug!("Unexpected binary message received"),
+            WebSocketMessage::Binary(_) => tracing::debug!("Unexpected binary message received"),
             WebSocketMessage::Ping(_) | WebSocketMessage::Pong(_) => (),
         }
         vec![]
@@ -534,6 +553,7 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler for BybitWeb
 impl<H: FnMut(serde_json::Value) + Send> BybitWebSocketHandler<H> {
     #[inline(always)]
     fn message_subscribe(&self) -> Vec<WebSocketMessage> {
+        tracing::info!(exchange = "bybit", event = "ws_subscription_requested");
         vec![WebSocketMessage::Text(
             json!({ "op": "subscribe", "args": self.options.websocket_topics }).to_string(),
         )]

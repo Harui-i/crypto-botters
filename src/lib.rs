@@ -1,14 +1,12 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use generic_api_client::{
-    http::{self, *},
-    websocket::*,
-};
+use crate::{http::*, websocket::*};
 use serde::Serialize;
 use traits::*;
 
 pub use exchanges::*;
-pub use generic_api_client;
+pub mod http;
+pub mod websocket;
 
 mod exchanges;
 pub mod traits;

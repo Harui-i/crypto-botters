@@ -2,7 +2,7 @@
 //! For example usages, see files in the examples/ directory.
 
 use crate::traits::*;
-use generic_api_client::{
+use crate::{
     http::{header::HeaderValue, *},
     websocket::*,
 };
@@ -177,9 +177,26 @@ where
         _: HeaderMap,
         response_body: Bytes,
     ) -> Result<Self::Successful, Self::Unsuccessful> {
+        if !status.is_success() {
+            let code = serde_json::from_slice::<serde_json::Value>(&response_body)
+                .ok()
+                .and_then(|value| {
+                    value["code"]
+                        .as_i64()
+                        .or_else(|| value["retCode"].as_i64())
+                        .or_else(|| value["ret_code"].as_i64())
+                        .or_else(|| value["status"].as_i64())
+                });
+            tracing::warn!(
+                exchange = "coincheck",
+                event = "api_response_rejected",
+                http_status = status.as_u16(),
+                api_code = code
+            );
+        }
         if status.is_success() {
-            serde_json::from_slice(&response_body).map_err(|error| {
-                log::debug!("Failed to parse response due to an error: {}", error);
+            serde_json::from_slice(&response_body).map_err(|_error| {
+                tracing::warn!(exchange = "coincheck", event = "response_parse_failed");
                 CoincheckHandlerError::ParseError
             })
         } else {
@@ -191,8 +208,11 @@ where
                         CoincheckHandlerError::ApiError(parsed_error)
                     }
                 }
-                Err(error) => {
-                    log::debug!("Failed to parse error response due to an error: {}", error);
+                Err(_error) => {
+                    tracing::warn!(
+                        exchange = "coincheck",
+                        event = "error_response_parse_failed"
+                    );
                     CoincheckHandlerError::ParseError
                 }
             };
@@ -230,10 +250,10 @@ impl<H: FnMut(serde_json::Value) + Send + 'static> WebSocketHandler
             WebSocketMessage::Text(message) => {
                 match serde_json::from_str(&message) {
                     Ok(message) => (self.message_handler)(message),
-                    Err(_) => log::debug!("Invalid JSON message received"),
+                    Err(_) => tracing::warn!("Invalid JSON message received"),
                 };
             }
-            WebSocketMessage::Binary(_) => log::debug!("Unexpected binary message received"),
+            WebSocketMessage::Binary(_) => tracing::debug!("Unexpected binary message received"),
             WebSocketMessage::Ping(_) | WebSocketMessage::Pong(_) => (),
         }
         vec![]
